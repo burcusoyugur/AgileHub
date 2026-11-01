@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using AgileHub.Data;
 using AgileHub.Models;
 
 namespace AgileHub.Controllers;
@@ -7,10 +8,58 @@ namespace AgileHub.Controllers;
 public class AccountController : Controller
 {
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public AccountController(SignInManager<ApplicationUser> signInManager)
+    public AccountController(
+        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager)
     {
         _signInManager = signInManager;
+        _userManager = userManager;
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        return View(new KayitViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(KayitViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var email = model.Email.Trim();
+
+        // Kullanıcı adı olarak e-posta kullanılıyor (bkz. SeedData).
+        var kullanici = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            Ad = model.Ad.Trim(),
+            Soyad = model.Soyad.Trim()
+        };
+
+        var sonuc = await _userManager.CreateAsync(kullanici, model.Sifre);
+
+        if (!sonuc.Succeeded)
+        {
+            foreach (var hata in sonuc.Errors)
+            {
+                ModelState.AddModelError(string.Empty, hata.Description);
+            }
+
+            return View(model);
+        }
+
+        await _userManager.AddToRoleAsync(kullanici, Roller.Kullanici);
+        await _signInManager.SignInAsync(kullanici, isPersistent: false);
+
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
@@ -52,5 +101,21 @@ public class AccountController : Controller
         ModelState.AddModelError(string.Empty, hata);
 
         return View(model);
+    }
+
+    // Çıkış durum değiştirdiği için yalnızca POST kabul edilir (bağlantıyla çıkış yaptırılamaz).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
+    }
+
+    // Yetkisiz erişimde Identity bu sayfaya yönlendirir (bkz. Program.cs AccessDeniedPath).
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
     }
 }

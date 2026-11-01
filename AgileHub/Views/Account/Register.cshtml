@@ -1,0 +1,50 @@
+@model KayitViewModel
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <h1 class="h3 mb-3">Kayıt Ol</h1>
+
+        <form asp-action="Register" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Ad" class="form-label"></label>
+                <input asp-for="Ad" class="form-control" autocomplete="given-name" />
+                <span asp-validation-for="Ad" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Soyad" class="form-label"></label>
+                <input asp-for="Soyad" class="form-control" autocomplete="family-name" />
+                <span asp-validation-for="Soyad" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="username" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Sifre" class="form-label"></label>
+                <input asp-for="Sifre" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="Sifre" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="SifreTekrar" class="form-label"></label>
+                <input asp-for="SifreTekrar" class="form-control" autocomplete="new-password" />
+                <span asp-validation-for="SifreTekrar" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Kayıt Ol</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
