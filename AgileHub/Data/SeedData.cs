@@ -19,6 +19,7 @@ namespace AgileHub.Data
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
             var config = services.GetRequiredService<IConfiguration>();
+            var ortam = services.GetRequiredService<IHostEnvironment>();
             var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("SeedData");
 
             // 1) Roller
@@ -61,7 +62,35 @@ namespace AgileHub.Data
                 }
             }
 
-            // 3) Etiketler
+            // 3) Test kullanıcısı: üye ekleme gibi ikinci kullanıcı gereken işleri denemek için,
+            // yalnızca geliştirme ortamında ve yönetici şifresiyle oluşturulur.
+            const string testEmail = "test@agilehub.local";
+
+            if (ortam.IsDevelopment() && !string.IsNullOrEmpty(sifre)
+                && await userManager.FindByEmailAsync(testEmail) is null)
+            {
+                var testKullanici = new ApplicationUser
+                {
+                    UserName = testEmail,
+                    Email = testEmail,
+                    Ad = "Test",
+                    Soyad = "Kullanıcı",
+                    EmailConfirmed = true
+                };
+
+                var sonuc = await userManager.CreateAsync(testKullanici, sifre);
+                if (sonuc.Succeeded)
+                {
+                    await userManager.AddToRoleAsync(testKullanici, Roller.Kullanici);
+                }
+                else
+                {
+                    logger.LogError("Test kullanıcısı oluşturulamadı: {Hatalar}",
+                        string.Join(", ", sonuc.Errors.Select(e => e.Description)));
+                }
+            }
+
+            // 4) Etiketler
             if (!await db.Etiketler.AnyAsync())
             {
                 db.Etiketler.AddRange(

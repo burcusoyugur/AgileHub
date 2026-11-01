@@ -79,6 +79,7 @@ Uygulama her açılışta `Data/SeedData.cs` içindeki kodu çalıştırır ve e
 | --- | --- |
 | Roller | `Yonetici`, `Kullanici` |
 | Yönetici hesabı | E-posta: `admin@agilehub.local`, şifre: 3. adımda ayarladığınız şifre. Yonetici rolüne atanır. |
+| Test kullanıcısı | Yalnızca geliştirme ortamında. E-posta: `test@agilehub.local`, şifre: yönetici şifresiyle aynı. Kullanici rolüne atanır. |
 | Etiketler | Hata, Özellik, İyileştirme |
 
 Şifre ayarlanmamışsa yönetici hesabı oluşturulmaz ve terminalde bir uyarı görünür.
@@ -95,6 +96,35 @@ Diğer üyeler `git pull` sonrasında `Migrations` klasörüne yeni dosya geldiy
 
 ```
 dotnet ef database update
+```
+
+## Commit kuralları
+
+Commit mesajları [Conventional Commits](https://www.conventionalcommits.org/tr/v1.0.0/) yapısını izler, açıklamalar Türkçe yazılır:
+
+```
+<tür>(haftaN/<kapsam>): <kısa açıklama>
+```
+
+| Tür | Ne zaman |
+| --- | --- |
+| `feat` | Yeni özellik |
+| `fix` | Hata düzeltme |
+| `refactor` | Davranışı değiştirmeden kod düzenleme |
+| `docs` | README ve belgeler |
+| `test` | Test ekleme veya düzeltme |
+| `chore` | Paket, ayar, seed gibi yan işler |
+
+- Kapsamlar: `hesap`, `proje`, `uye`, `sprint`, `gorev`, `kanban`, `api`, `yonetici`, `db`
+- Hafta numarası plan belgesindeki haftadır. Kapsamı olmayan genel işlerde yalnızca hafta yazılır.
+- Açıklama küçük harfle başlar, emir kipiyle yazılır ("eklendi" değil "ekle") ve sonunda nokta olmaz.
+- İlk satır 72 karakteri geçmez.
+- Her commit tek bir iş yapar ve proje o haliyle derlenir.
+
+```
+feat(hafta2/hesap): e-posta ve şifre ile girişi ekle
+fix(hafta2/uye): aynı kullanıcının iki kez eklenmesini engelle
+docs(hafta2): commit kurallarını README'ye ekle
 ```
 
 ## Proje yapısı
