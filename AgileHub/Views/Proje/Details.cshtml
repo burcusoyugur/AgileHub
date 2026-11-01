@@ -67,7 +67,10 @@
 
 <section id="uyeler" class="mb-4">
     <h2 class="h5">Üyeler</h2>
-    @* Üye ekleme/çıkarma bölümü ProjeUyeleriController ile bu alana bağlanacak. *@
+    @if (TempData["Hata"] is string hata)
+    {
+        <div class="alert alert-danger">@hata</div>
+    }
     <ul class="list-group">
         @foreach (var uye in Model.ProjeUyeleri.OrderBy(u => u.KatilmaTarihi))
         {
@@ -80,6 +83,17 @@
             </li>
         }
     </ul>
+
+    @if (olusturanBenMiyim)
+    {
+        <form asp-controller="ProjeUyeleri" asp-action="Ekle" asp-route-projeId="@Model.Id" method="post" class="mt-3">
+            <label for="uyeEmail" class="form-label">Üye ekle</label>
+            <div class="input-group">
+                <input id="uyeEmail" name="email" type="email" class="form-control" placeholder="ornek@eposta.com" autocomplete="off" required />
+                <button type="submit" class="btn btn-primary">Ekle</button>
+            </div>
+        </form>
+    }
 </section>
 
 <a asp-action="Index">&larr; Projelerime dön</a>
