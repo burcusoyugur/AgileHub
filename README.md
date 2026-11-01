@@ -63,6 +63,12 @@ dotnet user-secrets set "SeedAdmin:Password" "BirSifre123"
 
 Şifre en az 6 karakter olmalı ve en az bir rakam içermelidir. Bu ayar proje klasörünün dışında, kullanıcının kendi bilgisayarında saklanır.
 
+JWT imza anahtarı da aynı şekilde ayarlanır. En az 32 karakter olmalıdır; ayarlanmazsa uygulama açılmaz:
+
+```
+dotnet user-secrets set "Jwt:Key" "en-az-32-karakterlik-rastgele-bir-anahtar"
+```
+
 **4. Uygulamayı çalıştırın**
 
 ```
@@ -70,6 +76,38 @@ dotnet run
 ```
 
 Terminalde yazan adresi (ör. `http://localhost:5203`) tarayıcıda açın. API uç noktaları geliştirme ortamında `/swagger` adresinden test edilebilir.
+
+## Mobil kimlik doğrulama API'si
+
+Mobil uygulama JWT ile giriş yapar; web sayfaları cookie ile çalışmaya devam eder. Korunan uçlara `Authorization: Bearer <token>` başlığıyla istek atılır. Swagger'da **Authorize** düğmesine token'ı yapıştırmak yeterlidir.
+
+| Uç | Başarılı | Hata |
+| --- | --- | --- |
+| `POST /api/auth/login` | `200`, token yanıtı | `401` hatalı giriş veya kilitli hesap, `400` geçersiz istek |
+| `POST /api/auth/register` | `200`, token yanıtı | `409` e-posta kayıtlı, `400` geçersiz istek veya şifre kurala uymuyor |
+| `GET /api/auth/me` | `200`, kullanıcı | `401` token yok, geçersiz veya süresi dolmuş |
+
+Giriş isteği:
+
+```json
+{ "email": "test@agilehub.local", "password": "BirSifre123" }
+```
+
+Kayıt isteği (son kelime soyad olarak kaydedilir):
+
+```json
+{ "fullName": "Ayşe Nur Yılmaz", "email": "ayse@ornek.com", "password": "BirSifre123" }
+```
+
+Token yanıtı:
+
+```json
+{
+  "token": "<jwt>",
+  "expiresAt": "2026-11-02T10:30:00Z",
+  "user": { "id": "<guid>", "email": "ayse@ornek.com", "ad": "Ayşe Nur", "soyad": "Yılmaz" }
+}
+```
 
 ## Başlangıç verileri (seed)
 
@@ -135,6 +173,7 @@ docs(hafta2): commit kurallarını README'ye ekle
 | `Data/` | `ApplicationDbContext` ve başlangıç verileri (`SeedData`) |
 | `Migrations/` | EF Core migration dosyaları |
 | `Controllers/` | MVC ve API controller'ları |
+| `Services/` | Yardımcı servisler (`JwtServisi`) |
 | `Views/` | Razor sayfaları |
 | `appsettings.json` | Uygulama ayarları ve veritabanı bağlantı cümlesi |
 | `Program.cs` | Uygulamanın başlangıç noktası ve servis ayarları |
