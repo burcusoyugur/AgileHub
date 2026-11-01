@@ -80,6 +80,13 @@
                 {
                     <span class="badge bg-secondary">Oluşturan</span>
                 }
+                else if (olusturanBenMiyim)
+                {
+                    <form asp-controller="ProjeUyeleri" asp-action="Cikar" asp-route-projeId="@Model.Id" asp-route-uyeId="@uye.Id" method="post"
+                          onsubmit="return confirm('Bu üyeyi projeden çıkarmak istiyor musunuz?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Çıkar</button>
+                    </form>
+                }
             </li>
         }
     </ul>

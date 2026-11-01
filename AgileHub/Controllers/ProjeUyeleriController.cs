@@ -87,5 +87,44 @@ namespace AgileHub.Controllers
             TempData["Mesaj"] = $"{kullanici.Ad} {kullanici.Soyad} projeye eklendi.";
             return ProjeDetayinaDon(projeId);
         }
+
+        // POST: /ProjeUyeleri/Cikar
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cikar(int projeId, int uyeId)
+        {
+            var proje = await _db.Projeler.AsNoTracking().FirstOrDefaultAsync(p => p.Id == projeId);
+
+            if (proje is null)
+            {
+                return NotFound();
+            }
+
+            if (proje.OlusturanKullaniciId != KullaniciId)
+            {
+                return Forbid();
+            }
+
+            var uye = await _db.ProjeUyeleri
+                .Include(u => u.Kullanici)
+                .FirstOrDefaultAsync(u => u.Id == uyeId && u.ProjeId == projeId);
+
+            if (uye is null)
+            {
+                return NotFound();
+            }
+
+            if (uye.KullaniciId == proje.OlusturanKullaniciId)
+            {
+                TempData["Hata"] = "Projeyi oluşturan kişi projeden çıkarılamaz.";
+                return ProjeDetayinaDon(projeId);
+            }
+
+            _db.ProjeUyeleri.Remove(uye);
+            await _db.SaveChangesAsync();
+
+            TempData["Mesaj"] = $"{uye.Kullanici?.Ad} {uye.Kullanici?.Soyad} projeden çıkarıldı.";
+            return ProjeDetayinaDon(projeId);
+        }
     }
 }
