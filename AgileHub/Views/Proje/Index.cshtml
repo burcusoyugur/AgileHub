@@ -1,0 +1,49 @@
+@model IEnumerable<Proje>
+@{
+    ViewData["Title"] = "Projelerim";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">@ViewData["Title"]</h1>
+    <a class="btn btn-primary" asp-action="Create">Yeni proje</a>
+</div>
+
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success">@mesaj</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Henüz üyesi olduğunuz bir proje yok. <a asp-action="Create">İlk projenizi oluşturun.</a>
+    </div>
+}
+else
+{
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Proje adı</th>
+                <th>Oluşturan</th>
+                <th>Oluşturma tarihi</th>
+                <th>Üye sayısı</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var proje in Model)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@proje.Id">@proje.Ad</a></td>
+                    <td>@proje.OlusturanKullanici?.Ad @proje.OlusturanKullanici?.Soyad</td>
+                    <td>@proje.OlusturmaTarihi.ToString("dd.MM.yyyy")</td>
+                    <td>@proje.ProjeUyeleri.Count</td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-secondary" asp-action="Details" asp-route-id="@proje.Id">Detay</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

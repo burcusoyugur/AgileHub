@@ -1,0 +1,22 @@
+@model Proje
+@{
+    ViewData["Title"] = "Projeyi sil";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<div class="alert alert-danger">
+    <strong>@Model.Ad</strong> projesini silmek üzeresiniz. Bu işlem geri alınamaz.
+</div>
+
+<p>Projeyle birlikte aşağıdakiler de silinecek:</p>
+<ul>
+    <li>@Model.Sprintler.Count sprint</li>
+    <li>@Model.Gorevler.Count görev (yorumları ve etiketleriyle birlikte)</li>
+    <li>@Model.ProjeUyeleri.Count üyelik kaydı</li>
+</ul>
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <button type="submit" class="btn btn-danger">Evet, sil</button>
+    <a class="btn btn-link" asp-action="Details" asp-route-id="@Model.Id">Vazgeç</a>
+</form>
