@@ -233,7 +233,8 @@ namespace AgileHub.Migrations
 
                     b.HasIndex("KullaniciId");
 
-                    b.HasIndex("ProjeId");
+                    b.HasIndex("ProjeId", "KullaniciId")
+                        .IsUnique();
 
                     b.ToTable("ProjeUyeleri");
                 });

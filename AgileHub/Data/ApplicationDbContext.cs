@@ -39,6 +39,11 @@ namespace AgileHub.Data
                 .HasForeignKey(p => p.OlusturanKullaniciId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Bir kullanıcı aynı projeye yalnızca bir kez üye olabilir.
+            builder.Entity<ProjeUyesi>()
+                .HasIndex(pu => new { pu.ProjeId, pu.KullaniciId })
+                .IsUnique();
+
             builder.Entity<ProjeUyesi>()
                 .HasOne(pu => pu.Kullanici)
                 .WithMany(u => u.ProjeUyelikleri)
