@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace AgileHub.Models
 {
     // API'nin döndürdüğü veriler. Entity'ler doğrudan döndürülmez: ApplicationUser
@@ -5,6 +7,17 @@ namespace AgileHub.Models
     // Alan adları modellerle aynıdır; hesaplanan alanlar ek olarak yer alır.
 
     public record KullaniciDto(string Id, string Email, string Ad, string Soyad);
+
+    public record GirisIstegi(
+        [Required, EmailAddress] string Email,
+        [Required] string Password);
+
+    public record KayitIstegi(
+        [Required, MinLength(3)] string FullName,
+        [Required, EmailAddress] string Email,
+        [Required] string Password);
+
+    public record AuthYaniti(string Token, DateTime ExpiresAt, KullaniciDto User);
 
     public record ProjeDto(
         int Id,
