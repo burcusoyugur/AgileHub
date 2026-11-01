@@ -111,4 +111,11 @@ public class AccountController : Controller
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Home");
     }
+
+    // Yetkisiz erişimde Identity bu sayfaya yönlendirir (bkz. Program.cs AccessDeniedPath).
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
 }
