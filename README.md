@@ -79,6 +79,7 @@ Uygulama her açılışta `Data/SeedData.cs` içindeki kodu çalıştırır ve e
 | --- | --- |
 | Roller | `Yonetici`, `Kullanici` |
 | Yönetici hesabı | E-posta: `admin@agilehub.local`, şifre: 3. adımda ayarladığınız şifre. Yonetici rolüne atanır. |
+| Test kullanıcısı | Yalnızca geliştirme ortamında. E-posta: `test@agilehub.local`, şifre: yönetici şifresiyle aynı. Kullanici rolüne atanır. |
 | Etiketler | Hata, Özellik, İyileştirme |
 
 Şifre ayarlanmamışsa yönetici hesabı oluşturulmaz ve terminalde bir uyarı görünür.
