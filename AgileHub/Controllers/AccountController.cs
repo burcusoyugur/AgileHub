@@ -102,4 +102,13 @@ public class AccountController : Controller
 
         return View(model);
     }
+
+    // Çıkış durum değiştirdiği için yalnızca POST kabul edilir (bağlantıyla çıkış yaptırılamaz).
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
+    }
 }
