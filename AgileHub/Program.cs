@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using AgileHub.Data;
 using AgileHub.Models;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +27,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
-builder.Services.AddControllersWithViews();
+// Enum'lar API'de sayı yerine ad olarak gönderilir (ör. "Yapiliyor").
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
