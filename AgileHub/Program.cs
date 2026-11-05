@@ -52,6 +52,7 @@ builder.Services.AddAuthentication()
     });
 
 builder.Services.AddScoped<JwtServisi>();
+builder.Services.AddScoped<ProjeYetkiServisi>();
 
 // Enum'lar API'de sayı yerine ad olarak gönderilir (ör. "Yapiliyor").
 builder.Services.AddControllersWithViews()
