@@ -61,5 +61,124 @@ namespace AgileHub.Services
 
             return IslemSonucu<Sprint>.Basarili(sprint);
         }
+
+        // Form ve API aynı kuralı kullansın diye alan doğrulaması da burada yapılır.
+        private static string? AlanHatasi(string ad, DateTime baslangic, DateTime bitis)
+        {
+            if (string.IsNullOrWhiteSpace(ad))
+            {
+                return "Sprint adı zorunludur.";
+            }
+
+            if (ad.Trim().Length > 200)
+            {
+                return "Sprint adı en fazla 200 karakter olabilir.";
+            }
+
+            if (bitis.Date <= baslangic.Date)
+            {
+                return "Bitiş tarihi başlangıç tarihinden sonra olmalıdır.";
+            }
+
+            return null;
+        }
+
+        // Yeni sprint her zaman Planlanıyor durumunda başlar.
+        public async Task<IslemSonucu<Sprint>> OlusturAsync(
+            int projeId, string ad, string? hedef, DateTime baslangic, DateTime bitis, string kullaniciId)
+        {
+            if (!await _db.Projeler.AnyAsync(p => p.Id == projeId))
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(projeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            if (AlanHatasi(ad, baslangic, bitis) is string hata)
+            {
+                return IslemSonucu.Gecersiz(hata);
+            }
+
+            var sprint = new Sprint
+            {
+                ProjeId = projeId,
+                Ad = ad.Trim(),
+                Hedef = hedef,
+                BaslangicTarihi = baslangic.Date,
+                BitisTarihi = bitis.Date,
+                Durum = SprintDurumu.Planlanıyor
+            };
+
+            _db.Sprintler.Add(sprint);
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu<Sprint>.Basarili(sprint);
+        }
+
+        public async Task<IslemSonucu> GuncelleAsync(
+            int sprintId, string ad, string? hedef, DateTime baslangic, DateTime bitis, string kullaniciId)
+        {
+            var sprint = await _db.Sprintler.FirstOrDefaultAsync(s => s.Id == sprintId);
+
+            if (sprint is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(sprint.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            if (sprint.Durum is SprintDurumu.Tamamlandı or SprintDurumu.İptalEdildi)
+            {
+                return IslemSonucu.Gecersiz("Tamamlanmış veya iptal edilmiş sprint düzenlenemez.");
+            }
+
+            if (AlanHatasi(ad, baslangic, bitis) is string hata)
+            {
+                return IslemSonucu.Gecersiz(hata);
+            }
+
+            sprint.Ad = ad.Trim();
+            sprint.Hedef = hedef;
+            sprint.BaslangicTarihi = baslangic.Date;
+            sprint.BitisTarihi = bitis.Date;
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu.Basarili();
+        }
+
+        // Sprintteki görevler silinmez, backlog'a döner.
+        public async Task<IslemSonucu> SilAsync(int sprintId, string kullaniciId)
+        {
+            var sprint = await _db.Sprintler
+                .Include(s => s.Gorevler)
+                .FirstOrDefaultAsync(s => s.Id == sprintId);
+
+            if (sprint is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(sprint.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            // Gorev -> Sprint ilişkisi NoAction olduğu için bağlantı önce elle kaldırılır.
+            foreach (var gorev in sprint.Gorevler)
+            {
+                gorev.SprintId = null;
+            }
+
+            _db.Sprintler.Remove(sprint);
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu.Basarili();
+        }
     }
 }
