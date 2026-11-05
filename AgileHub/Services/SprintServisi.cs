@@ -180,5 +180,74 @@ namespace AgileHub.Services
 
             return IslemSonucu.Basarili();
         }
+
+        // Bir projede aynı anda yalnızca bir aktif sprint olabilir.
+        public async Task<IslemSonucu> BaslatAsync(int sprintId, string kullaniciId)
+        {
+            var sprint = await _db.Sprintler.FirstOrDefaultAsync(s => s.Id == sprintId);
+
+            if (sprint is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(sprint.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            if (sprint.Durum != SprintDurumu.Planlanıyor)
+            {
+                return IslemSonucu.Gecersiz("Yalnızca planlanan bir sprint başlatılabilir.");
+            }
+
+            var aktifVarMi = await _db.Sprintler
+                .AnyAsync(s => s.ProjeId == sprint.ProjeId && s.Durum == SprintDurumu.Aktif);
+
+            if (aktifVarMi)
+            {
+                return IslemSonucu.Gecersiz("Projede zaten aktif bir sprint var. Önce onu tamamlayın.");
+            }
+
+            sprint.Durum = SprintDurumu.Aktif;
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu.Basarili();
+        }
+
+        // Bitmemiş görevler backlog'a döner; değer olarak geri dönen görev sayısı verilir.
+        public async Task<IslemSonucu<int>> TamamlaAsync(int sprintId, string kullaniciId)
+        {
+            var sprint = await _db.Sprintler
+                .Include(s => s.Gorevler)
+                .FirstOrDefaultAsync(s => s.Id == sprintId);
+
+            if (sprint is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(sprint.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            if (sprint.Durum != SprintDurumu.Aktif)
+            {
+                return IslemSonucu.Gecersiz("Yalnızca aktif bir sprint tamamlanabilir.");
+            }
+
+            var bitmeyenler = sprint.Gorevler.Where(g => g.Durum != GorevDurumu.Bitti).ToList();
+
+            foreach (var gorev in bitmeyenler)
+            {
+                gorev.SprintId = null;
+            }
+
+            sprint.Durum = SprintDurumu.Tamamlandı;
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu<int>.Basarili(bitmeyenler.Count);
+        }
     }
 }
