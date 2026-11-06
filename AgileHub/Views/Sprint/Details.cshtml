@@ -1,0 +1,123 @@
+@using AgileHub.Services
+@model Sprint
+@{
+    ViewData["Title"] = Model.Ad;
+    var dto = Model.ToDto();
+    var duzenlenebilir = Model.Durum is SprintDurumu.Planlanıyor or SprintDurumu.Aktif;
+}
+
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success">@mesaj</div>
+}
+
+@if (TempData["Hata"] is string hata)
+{
+    <div class="alert alert-danger">@hata</div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1">@Model.Ad <partial name="_SprintDurumRozeti" model="Model.Durum" /></h1>
+        <div class="text-muted small">
+            @Model.Proje?.Ad · @Model.BaslangicTarihi.ToString("dd.MM.yyyy") – @Model.BitisTarihi.ToString("dd.MM.yyyy")
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        @if (Model.Durum == SprintDurumu.Planlanıyor)
+        {
+            <form asp-action="Baslat" asp-route-id="@Model.Id" method="post">
+                <button type="submit" class="btn btn-success">Başlat</button>
+            </form>
+        }
+        @if (Model.Durum == SprintDurumu.Aktif)
+        {
+            <form asp-action="Tamamla" asp-route-id="@Model.Id" method="post"
+                  onsubmit="return confirm('Sprint tamamlansın mı? Bitmeyen görevler backlog\'a dönecek.');">
+                <button type="submit" class="btn btn-success">Tamamla</button>
+            </form>
+        }
+        @if (duzenlenebilir)
+        {
+            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Düzenle</a>
+        }
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">Sil</a>
+    </div>
+</div>
+
+<section class="mb-4">
+    <h2 class="h5">Sprint hedefi</h2>
+    @if (string.IsNullOrWhiteSpace(Model.Hedef))
+    {
+        <p class="text-muted">Hedef eklenmemiş.</p>
+    }
+    else
+    {
+        <p style="white-space: pre-line">@Model.Hedef</p>
+    }
+</section>
+
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h4 mb-0">@Model.Gorevler.Count</div>
+                <div class="text-muted small">Görev</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h4 mb-0">@dto.ToplamStoryPoint</div>
+                <div class="text-muted small">Toplam SP</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="h4 mb-0">@dto.TamamlananStoryPoint</div>
+                <div class="text-muted small">Biten SP</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="mb-4">
+    <h2 class="h5">Görevler</h2>
+    @if (!Model.Gorevler.Any())
+    {
+        <p class="text-muted">Bu sprintte henüz görev yok.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Başlık</th>
+                        <th>Durum</th>
+                        <th>Öncelik</th>
+                        <th>SP</th>
+                        <th>Atanan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var gorev in Model.Gorevler.OrderBy(g => g.Durum).ThenByDescending(g => g.Oncelik))
+                    {
+                        <tr>
+                            <td>@gorev.Baslik</td>
+                            <td>@gorev.Durum</td>
+                            <td>@gorev.Oncelik</td>
+                            <td>@gorev.StoryPoint</td>
+                            <td>@gorev.AtananKullanici?.Ad @gorev.AtananKullanici?.Soyad</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<a asp-action="Index" asp-route-projeId="@Model.ProjeId">&larr; Sprintlere dön</a>

@@ -163,7 +163,101 @@ namespace AgileHub.Controllers
             }
 
             TempData["Mesaj"] = "Sprint güncellendi.";
-            return RedirectToAction(nameof(Index), new { projeId = model.ProjeId });
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // GET: /Sprint/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            var sonuc = await _sprintServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            return View(sonuc.Deger);
+        }
+
+        // POST: /Sprint/Baslat/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Baslat(int id)
+        {
+            var sonuc = await _sprintServisi.BaslatAsync(id, KullaniciId);
+
+            if (sonuc.Durum == IslemDurumu.Gecersiz)
+            {
+                TempData["Hata"] = sonuc.Hata;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            TempData["Mesaj"] = "Sprint başlatıldı.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // POST: /Sprint/Tamamla/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Tamamla(int id)
+        {
+            var sonuc = await _sprintServisi.TamamlaAsync(id, KullaniciId);
+
+            if (sonuc.Durum == IslemDurumu.Gecersiz)
+            {
+                TempData["Hata"] = sonuc.Hata;
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            TempData["Mesaj"] = sonuc.Deger > 0
+                ? $"Sprint tamamlandı. Bitmeyen {sonuc.Deger} görev backlog'a döndü."
+                : "Sprint tamamlandı.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // GET: /Sprint/Delete/5
+        public async Task<IActionResult> Delete(int id)
+        {
+            var sonuc = await _sprintServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            return View(sonuc.Deger);
+        }
+
+        // POST: /Sprint/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            // Silindikten sonra proje bilgisi okunamayacağı için önce alınır.
+            var projeId = await _db.Sprintler
+                .Where(s => s.Id == id)
+                .Select(s => (int?)s.ProjeId)
+                .FirstOrDefaultAsync();
+
+            var sonuc = await _sprintServisi.SilAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            TempData["Mesaj"] = "Sprint silindi. Görevleri backlog'a döndü.";
+            return RedirectToAction(nameof(Index), new { projeId });
         }
     }
 }
