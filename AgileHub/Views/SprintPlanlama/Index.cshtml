@@ -1,0 +1,180 @@
+@model SprintPlanlamaViewModel
+@{
+    ViewData["Title"] = "Sprint planlama";
+    var secili = Model.SeciliSprint;
+
+    string OncelikRenk(GorevOnceligi oncelik) => oncelik switch
+    {
+        GorevOnceligi.Kritik => "bg-danger",
+        GorevOnceligi.Yuksek => "bg-warning text-dark",
+        GorevOnceligi.Orta => "bg-info text-dark",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="mb-3">
+    <h1 class="h3 mb-0">@ViewData["Title"]</h1>
+    <div class="text-muted small">@Model.ProjeAdi</div>
+</div>
+
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success">@mesaj</div>
+}
+
+@if (TempData["Hata"] is string hata)
+{
+    <div class="alert alert-danger">@hata</div>
+}
+
+@if (!Model.Sprintler.Any())
+{
+    <div class="alert alert-info">
+        Bu projede henüz sprint yok.
+        <a asp-controller="Sprint" asp-action="Create" asp-route-projeId="@Model.ProjeId">Önce bir sprint oluşturun.</a>
+    </div>
+}
+else
+{
+    <form method="get" asp-action="Index" class="row g-2 align-items-end mb-3">
+        <input type="hidden" name="projeId" value="@Model.ProjeId" />
+        <div class="col-12 col-md-6 col-lg-4">
+            <label for="sprintId" class="form-label">Sprint</label>
+            <select id="sprintId" name="sprintId" class="form-select" onchange="this.form.submit()">
+                @foreach (var sprint in Model.Sprintler)
+                {
+                    <option value="@sprint.Id" selected="@(sprint.Id == secili?.Id)">
+                        @sprint.Ad (@sprint.Durum)
+                    </option>
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <noscript><button type="submit" class="btn btn-outline-primary">Göster</button></noscript>
+        </div>
+    </form>
+
+    @if (secili is not null && !Model.SprintDuzenlenebilir)
+    {
+        <div class="alert alert-warning">
+            Bu sprint @secili.Durum.ToString().ToLower() olduğu için görev eklenemez veya çıkarılamaz.
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Backlog</span>
+                    <span class="badge bg-secondary">@Model.Backlog.Count</span>
+                </div>
+                <div class="card-body">
+                    @if (!Model.Backlog.Any())
+                    {
+                        <p class="text-muted mb-0">Backlog boş.</p>
+                    }
+                    else
+                    {
+                        <form method="post" asp-action="SpriteAta">
+                            <input type="hidden" name="projeId" value="@Model.ProjeId" />
+                            <input type="hidden" name="sprintId" value="@secili?.Id" />
+
+                            <ul class="list-group list-group-flush mb-3">
+                                @foreach (var gorev in Model.Backlog)
+                                {
+                                    <li class="list-group-item px-0 d-flex gap-2 align-items-start">
+                                        @if (Model.SprintDuzenlenebilir)
+                                        {
+                                            <input class="form-check-input mt-2" type="checkbox" name="gorevIdleri"
+                                                   value="@gorev.Id" aria-label="@gorev.Baslik seç" />
+                                        }
+                                        <div class="flex-grow-1">
+                                            <div>@gorev.Baslik</div>
+                                            <div class="small text-muted">
+                                                <span class="badge @OncelikRenk(gorev.Oncelik)">@gorev.Oncelik</span>
+                                                @(gorev.StoryPoint is int sp ? $"{sp} SP" : "SP yok")
+                                                @if (gorev.AtananKullanici is not null)
+                                                {
+                                                    <text>· @gorev.AtananKullanici.Ad @gorev.AtananKullanici.Soyad</text>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (Model.SprintDuzenlenebilir)
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap"
+                                                    name="gorevId" value="@gorev.Id">Sprinte ekle &rarr;</button>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+
+                            @if (Model.SprintDuzenlenebilir)
+                            {
+                                <button type="submit" class="btn btn-primary" asp-action="TopluAta">Seçilenleri sprinte ekle</button>
+                            }
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">
+                        @(secili?.Ad ?? "Sprint seçilmedi")
+                        @if (secili is not null)
+                        {
+                            <partial name="~/Views/Sprint/_SprintDurumRozeti.cshtml" model="secili.Durum" />
+                        }
+                    </span>
+                    <span class="badge bg-primary">@Model.SprintStoryPoint SP</span>
+                </div>
+                <div class="card-body">
+                    @if (secili is null)
+                    {
+                        <p class="text-muted mb-0">Görev eklemek için açık (planlanan veya aktif) bir sprint gerekli.</p>
+                    }
+                    else if (!Model.SprintGorevleri.Any())
+                    {
+                        <p class="text-muted mb-0">Bu sprintte henüz görev yok.</p>
+                    }
+                    else
+                    {
+                        <form method="post" asp-action="SprinttenCikar">
+                            <input type="hidden" name="projeId" value="@Model.ProjeId" />
+                            <input type="hidden" name="sprintId" value="@secili.Id" />
+
+                            <ul class="list-group list-group-flush">
+                                @foreach (var gorev in Model.SprintGorevleri)
+                                {
+                                    <li class="list-group-item px-0 d-flex gap-2 align-items-start">
+                                        <div class="flex-grow-1">
+                                            <div>@gorev.Baslik</div>
+                                            <div class="small text-muted">
+                                                <span class="badge @OncelikRenk(gorev.Oncelik)">@gorev.Oncelik</span>
+                                                @(gorev.StoryPoint is int sp ? $"{sp} SP" : "SP yok")
+                                                · @gorev.Durum
+                                                @if (gorev.AtananKullanici is not null)
+                                                {
+                                                    <text>· @gorev.AtananKullanici.Ad @gorev.AtananKullanici.Soyad</text>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (Model.SprintDuzenlenebilir)
+                                        {
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary text-nowrap"
+                                                    name="gorevId" value="@gorev.Id">&larr; Backlog'a al</button>
+                                        }
+                                    </li>
+                                }
+                            </ul>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<a asp-controller="Proje" asp-action="Details" asp-route-id="@Model.ProjeId">&larr; Projeye dön</a>
