@@ -1,0 +1,11 @@
+@model SprintDurumu
+@{
+    var (renk, metin) = Model switch
+    {
+        SprintDurumu.Aktif => ("bg-success", "Aktif"),
+        SprintDurumu.Tamamlandı => ("bg-secondary", "Tamamlandı"),
+        SprintDurumu.İptalEdildi => ("bg-danger", "İptal edildi"),
+        _ => ("bg-info text-dark", "Planlanıyor")
+    };
+}
+<span class="badge @renk">@metin</span>

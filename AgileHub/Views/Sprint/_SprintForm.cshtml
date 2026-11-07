@@ -1,0 +1,30 @@
+@model SprintFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<input type="hidden" asp-for="ProjeId" />
+
+<div class="mb-3">
+    <label asp-for="Ad" class="form-label"></label>
+    <input asp-for="Ad" class="form-control" placeholder="Sprint 1" />
+    <span asp-validation-for="Ad" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Hedef" class="form-label"></label>
+    <textarea asp-for="Hedef" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Hedef" class="text-danger"></span>
+</div>
+
+<div class="row">
+    <div class="col-sm-6 mb-3">
+        <label asp-for="BaslangicTarihi" class="form-label"></label>
+        <input asp-for="BaslangicTarihi" class="form-control" />
+        <span asp-validation-for="BaslangicTarihi" class="text-danger"></span>
+    </div>
+    <div class="col-sm-6 mb-3">
+        <label asp-for="BitisTarihi" class="form-label"></label>
+        <input asp-for="BitisTarihi" class="form-control" />
+        <span asp-validation-for="BitisTarihi" class="text-danger"></span>
+    </div>
+</div>

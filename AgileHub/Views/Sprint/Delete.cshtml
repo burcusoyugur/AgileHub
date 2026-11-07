@@ -1,0 +1,20 @@
+@model Sprint
+@{
+    ViewData["Title"] = "Sprinti sil";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<div class="alert alert-danger">
+    <strong>@Model.Ad</strong> sprintini silmek üzeresiniz. Bu işlem geri alınamaz.
+</div>
+
+@if (Model.Gorevler.Any())
+{
+    <p>Sprintteki @Model.Gorevler.Count görev silinmeyecek, backlog'a dönecek.</p>
+}
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <button type="submit" class="btn btn-danger">Evet, sil</button>
+    <a class="btn btn-link" asp-action="Details" asp-route-id="@Model.Id">Vazgeç</a>
+</form>
