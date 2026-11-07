@@ -54,6 +54,7 @@ builder.Services.AddAuthentication()
 builder.Services.AddScoped<JwtServisi>();
 builder.Services.AddScoped<ProjeYetkiServisi>();
 builder.Services.AddScoped<SprintServisi>();
+builder.Services.AddScoped<SprintAtamaServisi>();
 
 // Enum'lar API'de sayı yerine ad olarak gönderilir (ör. "Yapiliyor").
 builder.Services.AddControllersWithViews()
