@@ -117,5 +117,171 @@ namespace AgileHub.Services
 
             return IslemSonucu<List<ApplicationUser>>.Basarili(kisiler);
         }
+
+        // Form ve API aynı kuralı kullansın diye alan doğrulaması da burada yapılır.
+        private static string? AlanHatasi(string baslik, GorevOnceligi oncelik, GorevDurumu durum, int? storyPoint)
+        {
+            if (string.IsNullOrWhiteSpace(baslik))
+            {
+                return "Görev başlığı zorunludur.";
+            }
+
+            if (baslik.Trim().Length > 300)
+            {
+                return "Görev başlığı en fazla 300 karakter olabilir.";
+            }
+
+            // API'den sayı olarak tanımsız bir değer gelebilir.
+            if (!Enum.IsDefined(oncelik))
+            {
+                return "Geçersiz öncelik.";
+            }
+
+            if (!Enum.IsDefined(durum))
+            {
+                return "Geçersiz durum.";
+            }
+
+            if (storyPoint is < 0 or > 100)
+            {
+                return "Story point 0 ile 100 arasında olmalıdır.";
+            }
+
+            return null;
+        }
+
+        // Atanan kişi boş bırakılabilir; seçildiyse projenin üyesi olmalıdır.
+        private async Task<string?> AtananHatasiAsync(int projeId, string? atananKullaniciId)
+        {
+            if (atananKullaniciId is null || await _yetki.UyeMiAsync(projeId, atananKullaniciId))
+            {
+                return null;
+            }
+
+            return "Görev yalnızca projenin üyelerinden birine atanabilir.";
+        }
+
+        private static string? BosIseNull(string? metin)
+        {
+            return string.IsNullOrWhiteSpace(metin) ? null : metin.Trim();
+        }
+
+        // Yeni görev her zaman Yapılacak durumunda ve backlog'da (sprintsiz) başlar.
+        public async Task<IslemSonucu<Gorev>> OlusturAsync(
+            int projeId,
+            string baslik,
+            string? aciklama,
+            GorevOnceligi oncelik,
+            int? storyPoint,
+            string? atananKullaniciId,
+            string kullaniciId)
+        {
+            if (!await _db.Projeler.AnyAsync(p => p.Id == projeId))
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(projeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            atananKullaniciId = BosIseNull(atananKullaniciId);
+
+            if (AlanHatasi(baslik, oncelik, GorevDurumu.Yapilacak, storyPoint) is string hata)
+            {
+                return IslemSonucu.Gecersiz(hata);
+            }
+
+            if (await AtananHatasiAsync(projeId, atananKullaniciId) is string atananHatasi)
+            {
+                return IslemSonucu.Gecersiz(atananHatasi);
+            }
+
+            var gorev = new Gorev
+            {
+                ProjeId = projeId,
+                Baslik = baslik.Trim(),
+                Aciklama = BosIseNull(aciklama),
+                Oncelik = oncelik,
+                Durum = GorevDurumu.Yapilacak,
+                StoryPoint = storyPoint,
+                AtananKullaniciId = atananKullaniciId,
+                SprintId = null,
+                OlusturmaTarihi = DateTime.Now
+            };
+
+            _db.Gorevler.Add(gorev);
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu<Gorev>.Basarili(gorev);
+        }
+
+        // Görevin sprinti burada değişmez; sprinte atama SprintAtamaServisi'nin işidir.
+        public async Task<IslemSonucu> GuncelleAsync(
+            int gorevId,
+            string baslik,
+            string? aciklama,
+            GorevOnceligi oncelik,
+            GorevDurumu durum,
+            int? storyPoint,
+            string? atananKullaniciId,
+            string kullaniciId)
+        {
+            var gorev = await _db.Gorevler.FirstOrDefaultAsync(g => g.Id == gorevId);
+
+            if (gorev is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(gorev.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            atananKullaniciId = BosIseNull(atananKullaniciId);
+
+            if (AlanHatasi(baslik, oncelik, durum, storyPoint) is string hata)
+            {
+                return IslemSonucu.Gecersiz(hata);
+            }
+
+            if (await AtananHatasiAsync(gorev.ProjeId, atananKullaniciId) is string atananHatasi)
+            {
+                return IslemSonucu.Gecersiz(atananHatasi);
+            }
+
+            gorev.Baslik = baslik.Trim();
+            gorev.Aciklama = BosIseNull(aciklama);
+            gorev.Oncelik = oncelik;
+            gorev.Durum = durum;
+            gorev.StoryPoint = storyPoint;
+            gorev.AtananKullaniciId = atananKullaniciId;
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu.Basarili();
+        }
+
+        // Görevin yorumları ve etiket bağlantıları veritabanında cascade ile silinir.
+        public async Task<IslemSonucu> SilAsync(int gorevId, string kullaniciId)
+        {
+            var gorev = await _db.Gorevler.FirstOrDefaultAsync(g => g.Id == gorevId);
+
+            if (gorev is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(gorev.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            _db.Gorevler.Remove(gorev);
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu.Basarili();
+        }
     }
 }
