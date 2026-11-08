@@ -1,0 +1,20 @@
+@model GorevFormViewModel
+@{
+    ViewData["Title"] = "Yeni görev";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <form asp-action="Create" method="post">
+            <partial name="_GorevForm" model="Model" />
+            <button type="submit" class="btn btn-primary">Oluştur</button>
+            <a class="btn btn-link" asp-action="Index" asp-route-projeId="@Model.ProjeId">Vazgeç</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

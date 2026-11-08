@@ -84,5 +84,146 @@ namespace AgileHub.Controllers
 
             return View(model);
         }
+
+        // Formdaki "Atanan kişi" listesini doldurur; proje yoksa ya da kullanıcı üye değilse hata sonucu döner.
+        private async Task<IActionResult?> KisileriDoldurAsync(GorevFormViewModel model)
+        {
+            var kisiler = await _gorevServisi.AtanabilecekKisileriGetirAsync(model.ProjeId, KullaniciId);
+
+            if (!kisiler.BasariliMi)
+            {
+                return HataSonucu(kisiler.Durum);
+            }
+
+            model.AtanabilecekKisiler = KisiSecenekleri(kisiler.Deger!, model.AtananKullaniciId);
+            return null;
+        }
+
+        // GET: /Gorev/Create?projeId=5
+        public async Task<IActionResult> Create(int projeId)
+        {
+            var model = new GorevFormViewModel { ProjeId = projeId };
+
+            if (await KisileriDoldurAsync(model) is IActionResult hata)
+            {
+                return hata;
+            }
+
+            return View(model);
+        }
+
+        // POST: /Gorev/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(GorevFormViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return await KisileriDoldurAsync(model) ?? View(model);
+            }
+
+            var sonuc = await _gorevServisi.OlusturAsync(
+                model.ProjeId, model.Baslik, model.Aciklama, model.Oncelik, model.StoryPoint,
+                model.AtananKullaniciId, KullaniciId);
+
+            if (sonuc.Durum == IslemDurumu.Gecersiz)
+            {
+                ModelState.AddModelError(string.Empty, sonuc.Hata!);
+                return await KisileriDoldurAsync(model) ?? View(model);
+            }
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            TempData["Mesaj"] = "Görev backlog'a eklendi.";
+            return RedirectToAction(nameof(Index), new { projeId = model.ProjeId });
+        }
+
+        // GET: /Gorev/Edit/5
+        public async Task<IActionResult> Edit(int id)
+        {
+            var sonuc = await _gorevServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            var gorev = sonuc.Deger!;
+            var model = new GorevFormViewModel
+            {
+                Id = gorev.Id,
+                ProjeId = gorev.ProjeId,
+                Baslik = gorev.Baslik,
+                Aciklama = gorev.Aciklama,
+                Oncelik = gorev.Oncelik,
+                Durum = gorev.Durum,
+                StoryPoint = gorev.StoryPoint,
+                AtananKullaniciId = gorev.AtananKullaniciId
+            };
+
+            if (await KisileriDoldurAsync(model) is IActionResult hata)
+            {
+                return hata;
+            }
+
+            // Projeden çıkarılan kişi listede yoktur; seçim sessizce "Atanmamış"a düşmesin diye uyarı gösterilir.
+            if (gorev.AtananKullanici is not null && model.AtanabilecekKisiler.All(k => k.Value != gorev.AtananKullaniciId))
+            {
+                model.AtananKullaniciId = null;
+                model.UyeOlmayanAtananAdi = $"{gorev.AtananKullanici.Ad} {gorev.AtananKullanici.Soyad}".Trim();
+            }
+
+            return View(model);
+        }
+
+        // POST: /Gorev/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, GorevFormViewModel model)
+        {
+            if (id != model.Id)
+            {
+                return BadRequest();
+            }
+
+            // Formdaki gizli ProjeId'ye güvenilmez; görevin gerçek projesi kullanılır.
+            var projeId = await _db.Gorevler
+                .Where(g => g.Id == id)
+                .Select(g => (int?)g.ProjeId)
+                .FirstOrDefaultAsync();
+
+            if (projeId is null)
+            {
+                return NotFound();
+            }
+
+            model.ProjeId = projeId.Value;
+
+            if (!ModelState.IsValid)
+            {
+                return await KisileriDoldurAsync(model) ?? View(model);
+            }
+
+            var sonuc = await _gorevServisi.GuncelleAsync(
+                id, model.Baslik, model.Aciklama, model.Oncelik, model.Durum, model.StoryPoint,
+                model.AtananKullaniciId, KullaniciId);
+
+            if (sonuc.Durum == IslemDurumu.Gecersiz)
+            {
+                ModelState.AddModelError(string.Empty, sonuc.Hata!);
+                return await KisileriDoldurAsync(model) ?? View(model);
+            }
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            TempData["Mesaj"] = "Görev güncellendi.";
+            return RedirectToAction(nameof(Index), new { projeId = model.ProjeId });
+        }
     }
 }
