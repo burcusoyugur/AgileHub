@@ -10,6 +10,8 @@
         GorevOnceligi.Orta => "bg-info text-dark",
         _ => "bg-secondary"
     };
+
+    string SprintDurumMetni(SprintDurumu durum) => durum == SprintDurumu.İptalEdildi ? "İptal edildi" : durum.ToString();
 }
 
 <div class="mb-3">
@@ -44,7 +46,7 @@ else
                 @foreach (var sprint in Model.Sprintler)
                 {
                     <option value="@sprint.Id" selected="@(sprint.Id == secili?.Id)">
-                        @sprint.Ad (@sprint.Durum)
+                        @sprint.Ad (@SprintDurumMetni(sprint.Durum))
                     </option>
                 }
             </select>
@@ -57,7 +59,7 @@ else
     @if (secili is not null && !Model.SprintDuzenlenebilir)
     {
         <div class="alert alert-warning">
-            Bu sprint @secili.Durum.ToString().ToLower() olduğu için görev eklenemez veya çıkarılamaz.
+            Bu sprint @SprintDurumMetni(secili.Durum).ToLower(new System.Globalization.CultureInfo("tr-TR")) olduğu için görev eklenemez veya çıkarılamaz.
         </div>
     }
 
@@ -91,7 +93,7 @@ else
                                         <div class="flex-grow-1">
                                             <div>@gorev.Baslik</div>
                                             <div class="small text-muted">
-                                                <span class="badge @OncelikRenk(gorev.Oncelik)">@gorev.Oncelik</span>
+                                                <span class="badge @OncelikRenk(gorev.Oncelik)">@gorev.Oncelik.Metin()</span>
                                                 @(gorev.StoryPoint is int sp ? $"{sp} SP" : "SP yok")
                                                 @if (gorev.AtananKullanici is not null)
                                                 {
@@ -152,9 +154,9 @@ else
                                         <div class="flex-grow-1">
                                             <div>@gorev.Baslik</div>
                                             <div class="small text-muted">
-                                                <span class="badge @OncelikRenk(gorev.Oncelik)">@gorev.Oncelik</span>
+                                                <span class="badge @OncelikRenk(gorev.Oncelik)">@gorev.Oncelik.Metin()</span>
                                                 @(gorev.StoryPoint is int sp ? $"{sp} SP" : "SP yok")
-                                                · @gorev.Durum
+                                                · @gorev.Durum.Metin()
                                                 @if (gorev.AtananKullanici is not null)
                                                 {
                                                     <text>· @gorev.AtananKullanici.Ad @gorev.AtananKullanici.Soyad</text>
