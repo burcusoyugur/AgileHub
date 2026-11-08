@@ -1,0 +1,121 @@
+@model GorevListesiViewModel
+@{
+    ViewData["Title"] = Model.SadeceBacklog ? "Backlog" : "Tüm görevler";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-0">@ViewData["Title"]</h1>
+        <div class="text-muted small">@Model.ProjeAdi</div>
+    </div>
+    <a class="btn btn-primary" asp-action="Create" asp-route-projeId="@Model.ProjeId">Yeni görev</a>
+</div>
+
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success">@mesaj</div>
+}
+
+@if (TempData["Hata"] is string hata)
+{
+    <div class="alert alert-danger">@hata</div>
+}
+
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link @(Model.SadeceBacklog ? "active" : "")" aria-current="@(Model.SadeceBacklog ? "page" : null)"
+           asp-action="Index" asp-route-projeId="@Model.ProjeId"
+           asp-route-durum="@Model.Durum" asp-route-atanan="@Model.AtananKullaniciId">Backlog</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.SadeceBacklog ? "" : "active")" aria-current="@(Model.SadeceBacklog ? null : "page")"
+           asp-action="Index" asp-route-projeId="@Model.ProjeId" asp-route-tumu="true"
+           asp-route-durum="@Model.Durum" asp-route-atanan="@Model.AtananKullaniciId">Tüm görevler</a>
+    </li>
+</ul>
+
+<form asp-action="Index" method="get" class="row g-2 align-items-end mb-3">
+    <input type="hidden" name="projeId" value="@Model.ProjeId" />
+    @if (!Model.SadeceBacklog)
+    {
+        <input type="hidden" name="tumu" value="true" />
+    }
+    <div class="col-6 col-md-3">
+        <label for="durum" class="form-label small mb-1">Durum</label>
+        <select id="durum" name="durum" class="form-select form-select-sm">
+            <option value="">Tümü</option>
+            @foreach (var d in Enum.GetValues<GorevDurumu>())
+            {
+                <option value="@d" selected="@(Model.Durum == d)">@d.Metin()</option>
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-3">
+        <label for="atanan" class="form-label small mb-1">Atanan kişi</label>
+        <select id="atanan" name="atanan" class="form-select form-select-sm" asp-items="Model.AtanabilecekKisiler">
+            <option value="">Herkes</option>
+        </select>
+    </div>
+    <div class="col-12 col-md-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-outline-primary">Filtrele</button>
+        @if (Model.FiltreVarMi)
+        {
+            <a class="btn btn-sm btn-link" asp-action="Index" asp-route-projeId="@Model.ProjeId"
+               asp-route-tumu="@(Model.SadeceBacklog ? null : "true")">Temizle</a>
+        }
+    </div>
+</form>
+
+@if (!Model.Gorevler.Any())
+{
+    <div class="alert alert-info">
+        @if (Model.FiltreVarMi)
+        {
+            <text>Seçilen filtrelere uyan görev yok.</text>
+        }
+        else if (Model.SadeceBacklog)
+        {
+            <text>Backlog boş. <a asp-action="Create" asp-route-projeId="@Model.ProjeId">Yeni bir görev ekleyin.</a></text>
+        }
+        else
+        {
+            <text>Bu projede henüz görev yok. <a asp-action="Create" asp-route-projeId="@Model.ProjeId">İlk görevi ekleyin.</a></text>
+        }
+    </div>
+}
+else
+{
+    <div class="text-muted small mb-2">@Model.Gorevler.Count görev · @Model.ToplamStoryPoint story point</div>
+
+    <div class="list-group mb-3">
+        @foreach (var gorev in Model.Gorevler)
+        {
+            <a class="list-group-item list-group-item-action" asp-action="Details" asp-route-id="@gorev.Id">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <span class="fw-semibold text-break">@gorev.Baslik</span>
+                    <partial name="_GorevOncelikRozeti" model="gorev.Oncelik" />
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 text-muted small mt-1">
+                    <partial name="_GorevDurumRozeti" model="gorev.Durum" />
+                    <span>@(gorev.StoryPoint is int sp ? $"{sp} SP" : "SP yok")</span>
+                    <span>
+                        @if (gorev.AtananKullanici is not null)
+                        {
+                            @($"{gorev.AtananKullanici.Ad} {gorev.AtananKullanici.Soyad}".Trim())
+                        }
+                        else
+                        {
+                            <text>Atanmamış</text>
+                        }
+                    </span>
+                    @if (!Model.SadeceBacklog)
+                    {
+                        <span>· @(gorev.Sprint?.Ad ?? "Backlog")</span>
+                    }
+                </div>
+            </a>
+        }
+    </div>
+}
+
+<a asp-controller="Proje" asp-action="Details" asp-route-id="@Model.ProjeId">&larr; Projeye dön</a>
