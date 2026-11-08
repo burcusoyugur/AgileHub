@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="row justify-content-center py-4">
+    <div class="col-12 col-lg-8 text-center">
+        <h1 class="display-5 fw-bold">AgileHub</h1>
+        <p class="lead mt-3">
+            Yazılım ekipleri için çevik proje takip portalı. Projelerini oluştur, iş listeni (backlog) yönet,
+            görevleri sprintlere böl ve ekibinin ilerlemesini tek yerden takip et.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+            <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Login">Giriş yap</a>
+            <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Register">Kayıt ol</a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Projeler ve ekip</h2>
+                <p class="card-text text-muted mb-0">Proje oluştur, ekip arkadaşlarını e-posta ile projeye ekle.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">Backlog ve sprintler</h2>
+                <p class="card-text text-muted mb-0">Görevleri önceliğe ve story point'e göre planla, sprintlere ata.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h2 class="h5">İlerleme takibi</h2>
+                <p class="card-text text-muted mb-0">Aktif sprintleri, kalan günleri ve sana atanan görevleri tek bakışta gör.</p>
+            </div>
+        </div>
+    </div>
+</div>

@@ -38,28 +38,34 @@
     }
 </section>
 
-<div class="row mb-4">
-    <div class="col-sm-4">
-        <div class="card text-center">
+<div class="d-flex flex-wrap gap-2 mb-3">
+    <a class="btn btn-primary" href="/Gorev?projeId=@Model.Id">Backlog</a>
+    <a class="btn btn-outline-primary" asp-controller="Sprint" asp-action="Index" asp-route-projeId="@Model.Id">Sprintler</a>
+    <a class="btn btn-outline-primary" href="/SprintPlanlama?projeId=@Model.Id">Sprint planlama</a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-4">
+        <div class="card text-center h-100">
             <div class="card-body">
                 <div class="h4 mb-0">@Model.Sprintler.Count</div>
-                <div class="text-muted small">Sprint</div>
+                <a class="text-muted small stretched-link text-decoration-none" asp-controller="Sprint" asp-action="Index" asp-route-projeId="@Model.Id">Sprint</a>
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
-        <div class="card text-center">
+    <div class="col-12 col-sm-4">
+        <div class="card text-center h-100">
             <div class="card-body">
                 <div class="h4 mb-0">@Model.Gorevler.Count</div>
-                <div class="text-muted small">Görev</div>
+                <a class="text-muted small stretched-link text-decoration-none" href="/Gorev?projeId=@Model.Id">Görev</a>
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
-        <div class="card text-center">
+    <div class="col-12 col-sm-4">
+        <div class="card text-center h-100">
             <div class="card-body">
                 <div class="h4 mb-0">@Model.ProjeUyeleri.Count</div>
-                <div class="text-muted small">Üye</div>
+                <a class="text-muted small stretched-link text-decoration-none" href="#uyeler">Üye</a>
             </div>
         </div>
     </div>

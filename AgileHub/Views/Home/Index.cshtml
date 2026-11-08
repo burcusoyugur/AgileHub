@@ -1,8 +1,164 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model HomeIndexViewModel
+@{
+    ViewData["Title"] = "Ana Sayfa";
+
+    string OncelikRengi(GorevOnceligi oncelik) => oncelik switch
+    {
+        GorevOnceligi.Kritik => "bg-danger",
+        GorevOnceligi.Yuksek => "bg-warning text-dark",
+        GorevOnceligi.Orta => "bg-primary",
+        _ => "bg-secondary"
+    };
+
+    string OncelikMetni(GorevOnceligi oncelik) => oncelik switch
+    {
+        GorevOnceligi.Kritik => "Kritik",
+        GorevOnceligi.Yuksek => "Yüksek",
+        GorevOnceligi.Orta => "Orta",
+        _ => "Düşük"
+    };
+
+    string DurumMetni(GorevDurumu durum) => durum switch
+    {
+        GorevDurumu.Yapiliyor => "Yapılıyor",
+        GorevDurumu.Test => "Test",
+        GorevDurumu.Bitti => "Bitti",
+        _ => "Yapılacak"
+    };
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<h1 class="h3 mb-3">Merhaba@(string.IsNullOrWhiteSpace(Model.AdSoyad) ? "" : ", " + Model.AdSoyad)</h1>
+
+@* Özet kartları *@
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-6">@Model.ProjeSayisi</div>
+                <a class="text-muted stretched-link text-decoration-none" asp-controller="Proje" asp-action="Index">Projelerim</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-6">@Model.AcikGorevSayisi</div>
+                <div class="text-muted">Bana atanan açık görev</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="display-6">@Model.AktifSprintSayisi</div>
+                <div class="text-muted">Aktif sprint</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    @* Sol sütun: aktif sprintler ve görevler *@
+    <div class="col-12 col-lg-8">
+        <section class="mb-4">
+            <h2 class="h5">Aktif sprintlerim</h2>
+            @if (!Model.AktifSprintler.Any())
+            {
+                <p class="text-muted">Üyesi olduğun projelerde şu an aktif sprint yok.</p>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var sprint in Model.AktifSprintler)
+                    {
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h3 class="h6 mb-1">
+                                            <a class="stretched-link text-decoration-none" asp-controller="Sprint" asp-action="Details" asp-route-id="@sprint.Id">@sprint.Ad</a>
+                                        </h3>
+                                        <span class="badge @(sprint.KalanGun <= 2 ? "bg-danger" : "bg-success")">
+                                            @(sprint.KalanGun == 0 ? "Bugün bitiyor" : $"{sprint.KalanGun} gün kaldı")
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small mb-2">@sprint.ProjeAdi · bitiş @sprint.BitisTarihi.ToString("dd.MM.yyyy")</div>
+                                    <div class="progress" role="progressbar" aria-label="Story point ilerlemesi"
+                                         aria-valuenow="@sprint.IlerlemeYuzdesi" aria-valuemin="0" aria-valuemax="100">
+                                        <div class="progress-bar" style="width: @sprint.IlerlemeYuzdesi%"></div>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                        @sprint.TamamlananStoryPoint / @sprint.ToplamStoryPoint SP tamamlandı (%@sprint.IlerlemeYuzdesi)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="mb-4">
+            <h2 class="h5">Bana atanan görevler</h2>
+            @if (!Model.BanaAtananGorevler.Any())
+            {
+                <p class="text-muted">Sana atanmış açık görev yok.</p>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var gorev in Model.BanaAtananGorevler)
+                    {
+                        <a class="list-group-item list-group-item-action" href="/Gorev/Details/@gorev.Id">
+                            <div class="d-flex justify-content-between align-items-start gap-2">
+                                <span class="fw-semibold">@gorev.Baslik</span>
+                                <span class="badge @OncelikRengi(gorev.Oncelik)">@OncelikMetni(gorev.Oncelik)</span>
+                            </div>
+                            <div class="small text-muted">
+                                @gorev.Proje?.Ad · @DurumMetni(gorev.Durum)
+                                @if (gorev.StoryPoint is int sp)
+                                {
+                                    <span>· @sp SP</span>
+                                }
+                            </div>
+                        </a>
+                    }
+                </div>
+                @if (Model.AcikGorevSayisi > Model.BanaAtananGorevler.Count)
+                {
+                    <div class="small text-muted mt-2">
+                        En öncelikli @Model.BanaAtananGorevler.Count görev gösteriliyor (toplam @Model.AcikGorevSayisi).
+                    </div>
+                }
+            }
+        </section>
+    </div>
+
+    @* Sağ sütun: son projeler *@
+    <div class="col-12 col-lg-4">
+        <section>
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="h5 mb-2">Son projeler</h2>
+                <a class="small" asp-controller="Proje" asp-action="Index">Tümü</a>
+            </div>
+            @if (!Model.SonProjeler.Any())
+            {
+                <p class="text-muted">
+                    Henüz bir projen yok. <a asp-controller="Proje" asp-action="Create">İlk projeni oluştur.</a>
+                </p>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var proje in Model.SonProjeler)
+                    {
+                        <a class="list-group-item list-group-item-action" asp-controller="Proje" asp-action="Details" asp-route-id="@proje.Id">
+                            <div class="fw-semibold">@proje.Ad</div>
+                            <div class="small text-muted">@proje.OlusturmaTarihi.ToString("dd.MM.yyyy")</div>
+                        </a>
+                    }
+                </div>
+            }
+        </section>
+    </div>
 </div>
