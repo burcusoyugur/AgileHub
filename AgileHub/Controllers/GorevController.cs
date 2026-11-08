@@ -223,7 +223,55 @@ namespace AgileHub.Controllers
             }
 
             TempData["Mesaj"] = "Görev güncellendi.";
-            return RedirectToAction(nameof(Index), new { projeId = model.ProjeId });
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // GET: /Gorev/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            var sonuc = await _gorevServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            return View(sonuc.Deger);
+        }
+
+        // GET: /Gorev/Delete/5
+        public async Task<IActionResult> Delete(int id)
+        {
+            var sonuc = await _gorevServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            return View(sonuc.Deger);
+        }
+
+        // POST: /Gorev/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            // Silindikten sonra proje bilgisi okunamayacağı için önce alınır.
+            var projeId = await _db.Gorevler
+                .Where(g => g.Id == id)
+                .Select(g => (int?)g.ProjeId)
+                .FirstOrDefaultAsync();
+
+            var sonuc = await _gorevServisi.SilAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            TempData["Mesaj"] = "Görev silindi.";
+            return RedirectToAction(nameof(Index), new { projeId });
         }
     }
 }
