@@ -1,0 +1,11 @@
+@model GorevDurumu
+@{
+    var renk = Model switch
+    {
+        GorevDurumu.Yapiliyor => "bg-primary",
+        GorevDurumu.Test => "bg-dark",
+        GorevDurumu.Bitti => "bg-success",
+        _ => "bg-secondary"
+    };
+}
+<span class="badge rounded-pill @renk" title="Durum">@Model.Metin()</span>
