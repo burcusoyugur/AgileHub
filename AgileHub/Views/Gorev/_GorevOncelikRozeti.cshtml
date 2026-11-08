@@ -1,0 +1,11 @@
+@model GorevOnceligi
+@{
+    var renk = Model switch
+    {
+        GorevOnceligi.Kritik => "bg-danger",
+        GorevOnceligi.Yuksek => "bg-warning text-dark",
+        GorevOnceligi.Orta => "bg-info text-dark",
+        _ => "bg-light text-dark border"
+    };
+}
+<span class="badge @renk" title="Öncelik">@Model.Metin()</span>

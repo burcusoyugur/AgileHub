@@ -1,0 +1,25 @@
+@model Gorev
+@{
+    ViewData["Title"] = "Görevi sil";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<div class="alert alert-danger">
+    <strong class="text-break">@Model.Baslik</strong> görevini silmek üzeresiniz. Bu işlem geri alınamaz.
+</div>
+
+@if (Model.Yorumlar.Any())
+{
+    <p>Görevin @Model.Yorumlar.Count yorumu da silinecek.</p>
+}
+
+@if (Model.Sprint is not null)
+{
+    <p>Görev <strong>@Model.Sprint.Ad</strong> sprintinden de kaldırılacak.</p>
+}
+
+<form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+    <button type="submit" class="btn btn-danger">Evet, sil</button>
+    <a class="btn btn-link" asp-action="Details" asp-route-id="@Model.Id">Vazgeç</a>
+</form>

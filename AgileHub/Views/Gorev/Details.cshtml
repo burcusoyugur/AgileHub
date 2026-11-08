@@ -1,0 +1,90 @@
+@model Gorev
+@{
+    ViewData["Title"] = Model.Baslik;
+    var atanan = Model.AtananKullanici is null
+        ? null
+        : $"{Model.AtananKullanici.Ad} {Model.AtananKullanici.Soyad}".Trim();
+}
+
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success">@mesaj</div>
+}
+
+@if (TempData["Hata"] is string hata)
+{
+    <div class="alert alert-danger">@hata</div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+    <div>
+        <h1 class="h3 mb-1 text-break">@Model.Baslik</h1>
+        <div class="d-flex flex-wrap align-items-center gap-2 text-muted small">
+            <partial name="_GorevDurumRozeti" model="Model.Durum" />
+            <partial name="_GorevOncelikRozeti" model="Model.Oncelik" />
+            <span>@Model.Proje?.Ad · @Model.OlusturmaTarihi.ToString("dd.MM.yyyy HH:mm")</span>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Düzenle</a>
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">Sil</a>
+    </div>
+</div>
+
+<section class="mb-4">
+    <h2 class="h5">Açıklama</h2>
+    @if (string.IsNullOrWhiteSpace(Model.Aciklama))
+    {
+        <p class="text-muted">Açıklama eklenmemiş.</p>
+    }
+    else
+    {
+        <p style="white-space: pre-line">@Model.Aciklama</p>
+    }
+</section>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="h4 mb-0">@(Model.StoryPoint?.ToString() ?? "–")</div>
+                <div class="text-muted small">Story point</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="fw-semibold text-break">@(atanan ?? "Atanmamış")</div>
+                <div class="text-muted small">Atanan kişi</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="fw-semibold text-break">
+                    @if (Model.Sprint is not null)
+                    {
+                        <a asp-controller="Sprint" asp-action="Details" asp-route-id="@Model.Sprint.Id">@Model.Sprint.Ad</a>
+                    }
+                    else
+                    {
+                        <text>Backlog</text>
+                    }
+                </div>
+                <div class="text-muted small">Sprint</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card h-100 text-center">
+            <div class="card-body">
+                <div class="h4 mb-0">@Model.Yorumlar.Count</div>
+                <div class="text-muted small">Yorum</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a asp-action="Index" asp-route-projeId="@Model.ProjeId">&larr; Backlog'a dön</a>
