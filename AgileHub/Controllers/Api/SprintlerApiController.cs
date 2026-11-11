@@ -51,5 +51,29 @@ namespace AgileHub.Controllers.Api
 
             return sonuc.Deger!.ToDto();
         }
+
+        /// <summary>Sprintteki görevleri listeler (önce en yüksek öncelik, aynı öncelikte en yeni).</summary>
+        [HttpGet("sprintler/{id:int}/gorevler")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<GorevDto>>> SprintGorevleri(int id)
+        {
+            // Servis sprinti görevleri ve atanan kişileriyle birlikte getirir.
+            var sonuc = await _sprintServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return sonuc.Deger!.Gorevler
+                .OrderByDescending(g => g.Oncelik)
+                .ThenByDescending(g => g.OlusturmaTarihi)
+                .ThenByDescending(g => g.Id)
+                .Select(g => g.ToDto())
+                .ToList();
+        }
     }
 }
