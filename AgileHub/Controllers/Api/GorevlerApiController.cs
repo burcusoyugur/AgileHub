@@ -95,5 +95,63 @@ namespace AgileHub.Controllers.Api
             var dto = olusan.Deger!.ToDto();
             return CreatedAtRoute("GorevGetir", new { id = dto.Id }, dto);
         }
+    
+
+        /// <summary>Görevin bilgilerini günceller; sprinti değiştirmez.</summary>
+        /// <param name="id">Görev kimliği.</param>
+        /// <param name="istek">Görevin yeni bilgileri.</param>
+        [HttpPut("gorevler/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> Guncelle(int id, [FromBody] GorevGuncelleIstegi istek)
+        {
+            var sonuc = await _gorevServisi.GuncelleAsync(
+                id, istek.Baslik, istek.Aciklama, istek.Oncelik, istek.Durum,
+                istek.StoryPoint, istek.AtananKullaniciId, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return await GuncelGorevAsync(id);
+        }
+    
+
+        /// <summary>Görevi siler.</summary>
+        /// <param name="id">Görev kimliği.</param>
+        [HttpDelete("gorevler/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Sil(int id)
+        {
+            var sonuc = await _gorevServisi.SilAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return NoContent();
+        }
+    
+
+        // Yazma işleminden sonra güncel görevi (atanan kişi dahil) okuyup DTO olarak döndürür.
+        private async Task<ActionResult<GorevDto>> GuncelGorevAsync(int id)
+        {
+            var sonuc = await _gorevServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return sonuc.Deger!.ToDto();
+        }
     }
 }
