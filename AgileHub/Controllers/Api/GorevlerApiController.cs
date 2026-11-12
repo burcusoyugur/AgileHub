@@ -10,10 +10,12 @@ namespace AgileHub.Controllers.Api
     public class GorevlerApiController : ApiTemelController
     {
         private readonly GorevServisi _gorevServisi;
+        private readonly SprintAtamaServisi _sprintAtamaServisi;
 
-        public GorevlerApiController(GorevServisi gorevServisi)
+        public GorevlerApiController(GorevServisi gorevServisi, SprintAtamaServisi sprintAtamaServisi)
         {
             _gorevServisi = gorevServisi;
+            _sprintAtamaServisi = sprintAtamaServisi;
         }
 
         /// <summary>Projenin görevlerini listeler (önce en yüksek öncelik, aynı öncelikte en yeni).</summary>
@@ -152,6 +154,30 @@ namespace AgileHub.Controllers.Api
             }
 
             return sonuc.Deger!.ToDto();
+        }
+    
+
+        /// <summary>Görevi sprinte atar; SprintId null ise görevi backlog'a alır.</summary>
+        /// <param name="id">Görev kimliği.</param>
+        /// <param name="istek">Hedef sprint; null ise backlog.</param>
+        [HttpPatch("gorevler/{id:int}/sprint")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> SprinteAta(int id, [FromBody] GorevSprintIstegi istek)
+        {
+            var sonuc = istek.SprintId is int sprintId
+                ? await _sprintAtamaServisi.SpriteAtaAsync(id, sprintId, KullaniciId)
+                : await _sprintAtamaServisi.SprinttenCikarAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return await GuncelGorevAsync(id);
         }
     }
 }
