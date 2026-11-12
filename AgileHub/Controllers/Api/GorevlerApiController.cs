@@ -62,5 +62,38 @@ namespace AgileHub.Controllers.Api
 
             return sonuc.Deger!.ToDto();
         }
+    
+
+        /// <summary>Projeye yeni görev ekler; görev her zaman backlog'da başlar.</summary>
+        /// <param name="projeId">Görevin ekleneceği proje kimliği.</param>
+        /// <param name="istek">Yeni görevin bilgileri.</param>
+        [HttpPost("projeler/{projeId:int}/gorevler")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> Olustur(int projeId, [FromBody] GorevOlusturIstegi istek)
+        {
+            var sonuc = await _gorevServisi.OlusturAsync(
+                projeId, istek.Baslik, istek.Aciklama, istek.Oncelik,
+                istek.StoryPoint, istek.AtananKullaniciId, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            // Oluşan entity'de atanan kişi yüklü değil; DTO'da adı dolu olsun diye yeniden okunur.
+            var olusan = await _gorevServisi.GetirAsync(sonuc.Deger!.Id, KullaniciId);
+
+            if (!olusan.BasariliMi)
+            {
+                return HataSonucu(olusan);
+            }
+
+            var dto = olusan.Deger!.ToDto();
+            return CreatedAtRoute("GorevGetir", new { id = dto.Id }, dto);
+        }
     }
 }
