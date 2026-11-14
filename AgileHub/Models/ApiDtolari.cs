@@ -58,4 +58,24 @@ namespace AgileHub.Models
         string YazanKullaniciAdi,
         string Metin,
         DateTime OlusturmaTarihi);
+
+    // Görev yazma uçlarının istek gövdeleri. Kurallar GorevServisi'ndekiyle aynıdır;
+    // servis yine de son sözü söyler. Proje URL'den gelir, yeni görev hep backlog'da başlar.
+    public record GorevOlusturIstegi(
+        [Required(ErrorMessage = "Başlık zorunludur."), MaxLength(300, ErrorMessage = "Başlık en fazla 300 karakter olabilir.")] string Baslik,
+        string? Aciklama,
+        GorevOnceligi Oncelik,
+        [Range(0, 100, ErrorMessage = "Story point 0 ile 100 arasında olmalıdır.")] int? StoryPoint,
+        string? AtananKullaniciId);
+
+    public record GorevGuncelleIstegi(
+        [Required(ErrorMessage = "Başlık zorunludur."), MaxLength(300, ErrorMessage = "Başlık en fazla 300 karakter olabilir.")] string Baslik,
+        string? Aciklama,
+        GorevOnceligi Oncelik,
+        GorevDurumu Durum,
+        [Range(0, 100, ErrorMessage = "Story point 0 ile 100 arasında olmalıdır.")] int? StoryPoint,
+        string? AtananKullaniciId);
+
+    // SprintId null ise görev backlog'a alınır.
+    public record GorevSprintIstegi(int? SprintId);
 }

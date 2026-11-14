@@ -10,10 +10,12 @@ namespace AgileHub.Controllers.Api
     public class GorevlerApiController : ApiTemelController
     {
         private readonly GorevServisi _gorevServisi;
+        private readonly SprintAtamaServisi _sprintAtamaServisi;
 
-        public GorevlerApiController(GorevServisi gorevServisi)
+        public GorevlerApiController(GorevServisi gorevServisi, SprintAtamaServisi sprintAtamaServisi)
         {
             _gorevServisi = gorevServisi;
+            _sprintAtamaServisi = sprintAtamaServisi;
         }
 
         /// <summary>Projenin görevlerini listeler (önce en yüksek öncelik, aynı öncelikte en yeni).</summary>
@@ -61,6 +63,121 @@ namespace AgileHub.Controllers.Api
             }
 
             return sonuc.Deger!.ToDto();
+        }
+    
+
+        /// <summary>Projeye yeni görev ekler; görev her zaman backlog'da başlar.</summary>
+        /// <param name="projeId">Görevin ekleneceği proje kimliği.</param>
+        /// <param name="istek">Yeni görevin bilgileri.</param>
+        [HttpPost("projeler/{projeId:int}/gorevler")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> Olustur(int projeId, [FromBody] GorevOlusturIstegi istek)
+        {
+            var sonuc = await _gorevServisi.OlusturAsync(
+                projeId, istek.Baslik, istek.Aciklama, istek.Oncelik,
+                istek.StoryPoint, istek.AtananKullaniciId, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            // Oluşan entity'de atanan kişi yüklü değil; DTO'da adı dolu olsun diye yeniden okunur.
+            var olusan = await _gorevServisi.GetirAsync(sonuc.Deger!.Id, KullaniciId);
+
+            if (!olusan.BasariliMi)
+            {
+                return HataSonucu(olusan);
+            }
+
+            var dto = olusan.Deger!.ToDto();
+            return CreatedAtRoute("GorevGetir", new { id = dto.Id }, dto);
+        }
+    
+
+        /// <summary>Görevin bilgilerini günceller; sprinti değiştirmez.</summary>
+        /// <param name="id">Görev kimliği.</param>
+        /// <param name="istek">Görevin yeni bilgileri.</param>
+        [HttpPut("gorevler/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> Guncelle(int id, [FromBody] GorevGuncelleIstegi istek)
+        {
+            var sonuc = await _gorevServisi.GuncelleAsync(
+                id, istek.Baslik, istek.Aciklama, istek.Oncelik, istek.Durum,
+                istek.StoryPoint, istek.AtananKullaniciId, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return await GuncelGorevAsync(id);
+        }
+    
+
+        /// <summary>Görevi siler.</summary>
+        /// <param name="id">Görev kimliği.</param>
+        [HttpDelete("gorevler/{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Sil(int id)
+        {
+            var sonuc = await _gorevServisi.SilAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return NoContent();
+        }
+    
+
+        // Yazma işleminden sonra güncel görevi (atanan kişi dahil) okuyup DTO olarak döndürür.
+        private async Task<ActionResult<GorevDto>> GuncelGorevAsync(int id)
+        {
+            var sonuc = await _gorevServisi.GetirAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return sonuc.Deger!.ToDto();
+        }
+    
+
+        /// <summary>Görevi sprinte atar; SprintId null ise görevi backlog'a alır.</summary>
+        /// <param name="id">Görev kimliği.</param>
+        /// <param name="istek">Hedef sprint; null ise backlog.</param>
+        [HttpPatch("gorevler/{id:int}/sprint")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> SprinteAta(int id, [FromBody] GorevSprintIstegi istek)
+        {
+            var sonuc = istek.SprintId is int sprintId
+                ? await _sprintAtamaServisi.SpriteAtaAsync(id, sprintId, KullaniciId)
+                : await _sprintAtamaServisi.SprinttenCikarAsync(id, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return await GuncelGorevAsync(id);
         }
     }
 }
