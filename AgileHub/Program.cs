@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using AgileHub.Data;
@@ -5,6 +6,7 @@ using AgileHub.Models;
 using AgileHub.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -49,6 +51,29 @@ builder.Services.AddAuthentication()
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+
+        // Token yoksa veya geçersizse 401 boş gövdeyle değil, diğer API hataları gibi ProblemDetails ile döner.
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+
+                var problem = new ProblemDetails
+                {
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Oturum açman gerekiyor",
+                    Detail = context.AuthenticateFailure is null
+                        ? "İstekte token yok."
+                        : "Token geçersiz veya süresi dolmuş."
+                };
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.Headers.WWWAuthenticate = "Bearer";
+                await context.Response.WriteAsJsonAsync(problem, options: null, contentType: "application/problem+json");
+            }
+        };
     });
 
 builder.Services.AddScoped<JwtServisi>();
@@ -67,7 +92,23 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "AgileHub API", Version = "v1" });
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "AgileHub API",
+        Version = "v1",
+        Description = "AgileHub mobil uygulamasının kullandığı REST API.\n\n" +
+                      "1. `POST /api/auth/login` ile giriş yap ve yanıttaki `token` değerini kopyala.\n" +
+                      "2. Sağ üstteki **Authorize** düğmesine token'ı yapıştır; sonraki isteklere `Authorization: Bearer` başlığı eklenir.\n\n" +
+                      "Hatalar ProblemDetails biçiminde döner (`title`, `status`, `detail`). " +
+                      "401: token yok veya süresi dolmuş, 403: projenin üyesi değilsin, 404: kayıt yok, 400: gönderilen bilgi geçersiz."
+    });
+
+    // Uçların üstündeki /// <summary> açıklamaları derlemenin ürettiği XML dosyasından okunur.
+    var xmlDosyasi = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlDosyasi));
+
+    // Gruplar controller adından "Api" eki atılarak adlandırılır: "ProjelerApi" yerine "Projeler".
+    c.TagActionsBy(api => [api.ActionDescriptor.RouteValues["controller"]!.Replace("Api", string.Empty)]);
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

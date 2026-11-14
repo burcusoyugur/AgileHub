@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>8a591708-957c-4f35-8b3c-c8fa1e3d7466</UserSecretsId>
+    <!-- /// <summary> açıklamaları Swagger'da görünsün diye XML dosyası üretilir. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- 1591: açıklaması olmayan her public tür için çıkan uyarı; yalnızca API uçları açıklanıyor. -->
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
