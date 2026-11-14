@@ -47,16 +47,24 @@ namespace AgileHub.Controllers
 
             if (kullanici is null)
             {
-                return Unauthorized();
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, title: "E-posta veya şifre hatalı");
             }
 
             // Web girişiyle aynı kilitleme kuralı geçerlidir; cookie oluşturulmaz.
             var sonuc = await _signInManager.CheckPasswordSignInAsync(
                 kullanici, istek.Password, lockoutOnFailure: true);
 
+            if (sonuc.IsLockedOut)
+            {
+                return Problem(
+                    statusCode: StatusCodes.Status401Unauthorized,
+                    title: "Hesap geçici olarak kilitlendi",
+                    detail: "Çok fazla hatalı deneme yapıldı. Birkaç dakika sonra tekrar dene.");
+            }
+
             if (!sonuc.Succeeded)
             {
-                return Unauthorized();
+                return Problem(statusCode: StatusCodes.Status401Unauthorized, title: "E-posta veya şifre hatalı");
             }
 
             return _jwtServisi.YanitOlustur(kullanici);
@@ -78,7 +86,7 @@ namespace AgileHub.Controllers
 
             if (await _userManager.FindByEmailAsync(email) is not null)
             {
-                return Conflict();
+                return Problem(statusCode: StatusCodes.Status409Conflict, title: "Bu e-posta ile kayıtlı bir hesap var");
             }
 
             // Mobilde ad soyad tek alanda alınır; son kelime soyad kabul edilir.
@@ -100,7 +108,7 @@ namespace AgileHub.Controllers
                 // Aynı anda iki istek gelirse ikincisi burada yakalanır.
                 if (sonuc.Errors.Any(e => e.Code == nameof(IdentityErrorDescriber.DuplicateUserName)))
                 {
-                    return Conflict();
+                    return Problem(statusCode: StatusCodes.Status409Conflict, title: "Bu e-posta ile kayıtlı bir hesap var");
                 }
 
                 foreach (var hata in sonuc.Errors)
