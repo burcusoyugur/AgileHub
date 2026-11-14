@@ -6,6 +6,7 @@ using AgileHub.Models;
 using AgileHub.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -49,6 +50,29 @@ builder.Services.AddAuthentication()
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? string.Empty)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
+        };
+
+        // Token yoksa veya geçersizse 401 boş gövdeyle değil, diğer API hataları gibi ProblemDetails ile döner.
+        options.Events = new JwtBearerEvents
+        {
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+
+                var problem = new ProblemDetails
+                {
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Title = "Oturum açman gerekiyor",
+                    Detail = context.AuthenticateFailure is null
+                        ? "İstekte token yok."
+                        : "Token geçersiz veya süresi dolmuş."
+                };
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.Headers.WWWAuthenticate = "Bearer";
+                await context.Response.WriteAsJsonAsync(problem, options: null, contentType: "application/problem+json");
+            }
         };
     });
 
