@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using AgileHub.Data;
@@ -67,7 +68,23 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "AgileHub API", Version = "v1" });
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "AgileHub API",
+        Version = "v1",
+        Description = "AgileHub mobil uygulamasının kullandığı REST API.\n\n" +
+                      "1. `POST /api/auth/login` ile giriş yap ve yanıttaki `token` değerini kopyala.\n" +
+                      "2. Sağ üstteki **Authorize** düğmesine token'ı yapıştır; sonraki isteklere `Authorization: Bearer` başlığı eklenir.\n\n" +
+                      "Hatalar ProblemDetails biçiminde döner (`title`, `status`, `detail`). " +
+                      "401: token yok veya süresi dolmuş, 403: projenin üyesi değilsin, 404: kayıt yok, 400: gönderilen bilgi geçersiz."
+    });
+
+    // Uçların üstündeki /// <summary> açıklamaları derlemenin ürettiği XML dosyasından okunur.
+    var xmlDosyasi = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlDosyasi));
+
+    // Gruplar controller adından "Api" eki atılarak adlandırılır: "ProjelerApi" yerine "Projeler".
+    c.TagActionsBy(api => [api.ActionDescriptor.RouteValues["controller"]!.Replace("Api", string.Empty)]);
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
