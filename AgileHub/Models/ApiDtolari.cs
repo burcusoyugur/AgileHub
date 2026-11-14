@@ -9,13 +9,13 @@ namespace AgileHub.Models
     public record KullaniciDto(string Id, string Email, string Ad, string Soyad);
 
     public record GirisIstegi(
-        [Required, EmailAddress] string Email,
-        [Required] string Password);
+        [Required(ErrorMessage = "E-posta zorunludur."), EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi gir.")] string Email,
+        [Required(ErrorMessage = "Şifre zorunludur.")] string Password);
 
     public record KayitIstegi(
-        [Required, MinLength(3)] string FullName,
-        [Required, EmailAddress] string Email,
-        [Required] string Password);
+        [Required(ErrorMessage = "Ad soyad zorunludur."), MinLength(3, ErrorMessage = "Ad soyad en az 3 karakter olmalıdır.")] string FullName,
+        [Required(ErrorMessage = "E-posta zorunludur."), EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi gir.")] string Email,
+        [Required(ErrorMessage = "Şifre zorunludur.")] string Password);
 
     public record AuthYaniti(string Token, DateTime ExpiresAt, KullaniciDto User);
 
