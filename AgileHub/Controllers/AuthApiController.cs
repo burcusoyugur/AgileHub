@@ -8,8 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AgileHub.Controllers
 {
+    /// <summary>Mobil uygulamanın giriş, kayıt ve oturum kontrolü uçları.</summary>
     [ApiController]
     [Route("api/auth")]
+    [Produces("application/json")]
     public class AuthApiController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -26,8 +28,19 @@ namespace AgileHub.Controllers
             _jwtServisi = jwtServisi;
         }
 
-        // POST: /api/auth/login
+        /// <summary>E-posta ve şifreyle giriş yapar; başarılıysa JWT token döner.</summary>
+        /// <remarks>
+        /// Yanıttaki <c>token</c> değeri korumalı uçlarda <c>Authorization: Bearer &lt;token&gt;</c> başlığıyla gönderilir.
+        /// Art arda hatalı denemelerde hesap web girişindeki gibi geçici olarak kilitlenir.
+        /// </remarks>
+        /// <param name="istek">Giriş bilgileri.</param>
+        /// <response code="200">Giriş başarılı; token, bitiş zamanı ve kullanıcı bilgisi.</response>
+        /// <response code="400">E-posta veya şifre boş ya da e-posta biçimi geçersiz.</response>
+        /// <response code="401">E-posta veya şifre hatalı ya da hesap kilitli.</response>
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<AuthYaniti>> Login(GirisIstegi istek)
         {
             var kullanici = await _userManager.FindByEmailAsync(istek.Email.Trim());
@@ -49,8 +62,16 @@ namespace AgileHub.Controllers
             return _jwtServisi.YanitOlustur(kullanici);
         }
 
-        // POST: /api/auth/register
+        /// <summary>Yeni hesap oluşturur ve hemen giriş yapmış olarak token döner.</summary>
+        /// <remarks>Ad soyad tek alanda alınır; son kelime soyad olarak kaydedilir. Yeni hesap Kullanici rolüne atanır.</remarks>
+        /// <param name="istek">Ad soyad, e-posta ve şifre.</param>
+        /// <response code="200">Hesap oluşturuldu; token, bitiş zamanı ve kullanıcı bilgisi.</response>
+        /// <response code="400">Eksik veya geçersiz bilgi ya da şifre kurallara uymuyor (ayrıntı <c>errors</c> alanında).</response>
+        /// <response code="409">Bu e-posta ile kayıtlı bir hesap zaten var.</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<AuthYaniti>> Register(KayitIstegi istek)
         {
             var email = istek.Email.Trim();
@@ -95,8 +116,13 @@ namespace AgileHub.Controllers
             return _jwtServisi.YanitOlustur(kullanici);
         }
 
-        // GET: /api/auth/me
+        /// <summary>Token'ın sahibi olan kullanıcının bilgilerini döner.</summary>
+        /// <remarks>Mobil uygulama açılışta kayıtlı token'ın hâlâ geçerli olup olmadığını bu uçla anlar.</remarks>
+        /// <response code="200">Giriş yapmış kullanıcı.</response>
+        /// <response code="401">Token yok, geçersiz veya süresi dolmuş.</response>
         [HttpGet("me")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ActionResult<KullaniciDto>> Me()
         {
