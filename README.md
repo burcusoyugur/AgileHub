@@ -154,18 +154,18 @@ Enum alanları sayı değil ad olarak gönderilir ve döner: `"oncelik": "Yuksek
 
 ### Test sonuçları
 
-14 Kasım 2026, `main` (44a50f8) + `hafta4/swagger`, yerel veritabanı. Kullanıcılar: `admin@agilehub.local` (proje 2'nin üyesi), `test@agilehub.local` (hiçbir projenin üyesi değil).
+14 Kasım 2026, `main` (44a50f8) + `hafta4/swagger` (düzeltmelerden sonra yeniden çalıştırıldı), yerel veritabanı. Kullanıcılar: `admin@agilehub.local` (proje 2'nin üyesi), `test@agilehub.local` (hiçbir projenin üyesi değil).
 
 | # | İstek | Senaryo | Beklenen | Sonuç |
 | --- | --- | --- | --- | --- |
 | 1.1 | `POST /api/auth/login` | Doğru bilgiler | 200 + token | ✅ 200 |
-| 1.3 | `POST /api/auth/login` | Hatalı şifre | 401 | ✅ 401 |
-| 1.4 | `POST /api/auth/login` | Geçersiz e-posta biçimi | 400 | ✅ 400 (mesaj İngilizce, aşağıya bakın) |
-| 1.5 | `POST /api/auth/register` | Kayıtlı e-posta | 409 | ✅ 409 |
+| 1.3 | `POST /api/auth/login` | Hatalı şifre / olmayan kullanıcı | 401 + Türkçe başlık | ✅ 401 "E-posta veya şifre hatalı" |
+| 1.4 | `POST /api/auth/login` | Geçersiz e-posta biçimi / boş alanlar | 400 + Türkçe hata | ✅ 400 "Geçerli bir e-posta adresi gir." |
+| 1.5 | `POST /api/auth/register` | Kayıtlı e-posta | 409 + Türkçe başlık | ✅ 409 "Bu e-posta ile kayıtlı bir hesap var" |
 | 1.6 | `POST /api/auth/register` | Şifre 3 karakter | 400 + Türkçe hata | ✅ 400 "Şifre en az 6 karakter…" |
 | 1.7 | `GET /api/auth/me` | Token ile | 200 + kullanıcı | ✅ 200 |
-| 1.8 | `GET /api/auth/me` | Token yok | 401, yönlendirme yok | ✅ 401 |
-| 1.9 | `GET /api/auth/me` | Bozuk token | 401 | ✅ 401 |
+| 1.8 | `GET /api/auth/me` | Token yok | 401 + ProblemDetails, yönlendirme yok | ✅ 401 "İstekte token yok." |
+| 1.9 | `GET /api/auth/me` | Bozuk token | 401 + ProblemDetails | ✅ 401 "Token geçersiz veya süresi dolmuş." |
 | 2.1 | `GET /api/projeler` | Admin | 200 + liste | ✅ 200, 1 proje |
 | 2.1 | `GET /api/projeler` | Test kullanıcısı | 200 + boş liste | ✅ 200, `[]` |
 | 2.2 | `GET /api/projeler` | Token yok | 401 | ✅ 401 |
@@ -186,11 +186,13 @@ Enum alanları sayı değil ad olarak gönderilir ve döner: `"oncelik": "Yuksek
 
 Swagger kontrolleri: yalnızca `/api` uçları listeleniyor ✅, enum'lar ad olarak görünüyor ✅, uç açıklamaları ve olası durum kodları görünüyor ✅, Authorize düğmesi çalışıyor ✅.
 
-Bulunan küçük sorunlar (uçların sahiplerine iletildi):
+İlk test turunda bulunan ve bu dalda düzeltilen sorunlar:
 
-- Token yokken veya geçersizken dönen `401` yanıtının gövdesi boş; Swagger'da ise ProblemDetails gövdesi gösteriliyor. Mobil taraf yalnızca durum koduna baktığı için çalışmayı bozmuyor.
-- `POST /api/auth/login` doğrulama hataları İngilizce ("The Email field is not a valid e-mail address."); `GirisIstegi` ve `KayitIstegi` kayıtlarında Türkçe `ErrorMessage` yok.
-- `401` (hatalı giriş) ve `409` (kayıtlı e-posta) yanıtlarının `title` alanı İngilizce ("Unauthorized", "Conflict"), `detail` yok. Mobil uygulama bu kodları kendi Türkçe mesajına çeviriyor.
+| Sorun | Düzeltme |
+| --- | --- |
+| Token yokken veya geçersizken dönen `401` yanıtının gövdesi boştu | `Program.cs`: `JwtBearerEvents.OnChallenge` ile ProblemDetails gövdesi (`"Oturum açman gerekiyor"`) |
+| Giriş ve kayıt doğrulama mesajları İngilizceydi | `ApiDtolari.cs`: `GirisIstegi` ve `KayitIstegi` alanlarına Türkçe `ErrorMessage` |
+| Hatalı giriş `401` ve kayıtlı e-posta `409` yanıtlarının başlığı İngilizceydi | `AuthApiController`: Türkçe `title`; kilitli hesap için ayrı mesaj |
 
 ## Başlangıç verileri (seed)
 
