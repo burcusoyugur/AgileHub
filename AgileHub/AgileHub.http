@@ -1,0 +1,211 @@
+# AgileHub API test dosyası
+#
+# VS Code'da "REST Client" eklentisiyle (humao.rest-client) veya Visual Studio'da açılır.
+# Her isteğin üstündeki "Send Request" bağlantısına tıklayınca istek gönderilir.
+#
+# Hazırlık:
+#   1. Bu dosyanın yanına (AgileHub/AgileHub/) .env adında bir dosya oluştur ve içine yaz:
+#        SEED_PASSWORD=<user-secrets'taki SeedAdmin:Password>
+#      .env dosyası .gitignore'da; şifre repoya girmez. Bu dosyaya şifre yazma.
+#   2. Sunucuyu başlat: dotnet run --launch-profile http
+#   3. Önce "girisAdmin" ve "girisTest" isteklerini gönder; token'lar sonraki isteklere kendiliğinden aktarılır.
+#
+# Kullanıcılar (SeedData): admin@agilehub.local (Yonetici) ve test@agilehub.local (Kullanici, yalnızca geliştirme).
+# @projeId: admin'in üyesi olduğu, test kullanıcısının üyesi olmadığı bir proje. GET /api/projeler yanıtından seç.
+
+@baseUrl = http://localhost:5203
+@sifre = {{$dotenv SEED_PASSWORD}}
+@projeId = 2
+@yokId = 999999
+
+@adminToken = {{girisAdmin.response.body.$.token}}
+@testToken = {{girisTest.response.body.$.token}}
+
+
+###############################################################################
+# 1. Kimlik doğrulama (AuthApiController)
+###############################################################################
+
+### 1.1 Admin girişi → 200 + token
+# @name girisAdmin
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@agilehub.local", "password": "{{sifre}}" }
+
+### 1.2 Test kullanıcısı girişi → 200 + token
+# @name girisTest
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "test@agilehub.local", "password": "{{sifre}}" }
+
+### 1.3 Hatalı şifre → 401
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@agilehub.local", "password": "YanlisSifre123" }
+
+### 1.4 Geçersiz e-posta biçimi → 400
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "eposta-degil", "password": "x" }
+
+### 1.5 Kayıtlı e-postayla kayıt → 409
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{ "fullName": "Deneme Kullanıcı", "email": "admin@agilehub.local", "password": "BirSifre123" }
+
+### 1.6 Kurala uymayan şifreyle kayıt → 400 (errors alanında Identity hataları)
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{ "fullName": "Deneme Kullanıcı", "email": "yeni-kullanici@ornek.com", "password": "123" }
+
+### 1.7 Token ile kendi bilgilerim → 200
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{adminToken}}
+
+### 1.8 Token olmadan → 401 (HTML giriş sayfasına yönlendirme değil)
+GET {{baseUrl}}/api/auth/me
+
+### 1.9 Bozuk token → 401
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer bu-gecerli-bir-token-degil
+
+
+###############################################################################
+# 2. Projeler (ProjelerApiController)
+###############################################################################
+
+### 2.1 Üyesi olduğum projeler → 200 + liste
+GET {{baseUrl}}/api/projeler
+Authorization: Bearer {{adminToken}}
+
+### 2.2 Token olmadan → 401
+GET {{baseUrl}}/api/projeler
+
+### 2.3 Tek proje → 200
+GET {{baseUrl}}/api/projeler/{{projeId}}
+Authorization: Bearer {{adminToken}}
+
+### 2.4 Üyesi olmadığım proje → 403
+GET {{baseUrl}}/api/projeler/{{projeId}}
+Authorization: Bearer {{testToken}}
+
+### 2.5 Olmayan proje → 404
+GET {{baseUrl}}/api/projeler/{{yokId}}
+Authorization: Bearer {{adminToken}}
+
+### 2.6 Proje üyeleri → 200
+GET {{baseUrl}}/api/projeler/{{projeId}}/uyeler
+Authorization: Bearer {{adminToken}}
+
+### 2.7 Üyesi olmadığım projenin üyeleri → 403
+GET {{baseUrl}}/api/projeler/{{projeId}}/uyeler
+Authorization: Bearer {{testToken}}
+
+
+###############################################################################
+# 3. Sprintler (SprintlerApiController)
+###############################################################################
+
+### 3.1 Projenin sprintleri → 200
+# @name sprintler
+GET {{baseUrl}}/api/projeler/{{projeId}}/sprintler
+Authorization: Bearer {{adminToken}}
+
+### 3.2 Üyesi olmadığım projenin sprintleri → 403
+GET {{baseUrl}}/api/projeler/{{projeId}}/sprintler
+Authorization: Bearer {{testToken}}
+
+### 3.3 Olmayan projenin sprintleri → 404
+GET {{baseUrl}}/api/projeler/{{yokId}}/sprintler
+Authorization: Bearer {{adminToken}}
+
+### 3.4 Olmayan sprint → 404
+GET {{baseUrl}}/api/sprintler/{{yokId}}
+Authorization: Bearer {{adminToken}}
+
+### 3.5 Olmayan sprintin görevleri → 404
+GET {{baseUrl}}/api/sprintler/{{yokId}}/gorevler
+Authorization: Bearer {{adminToken}}
+
+
+###############################################################################
+# 4. Görevler: okuma (GorevlerApiController)
+###############################################################################
+
+### 4.1 Projenin görevleri → 200
+GET {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{adminToken}}
+
+### 4.2 Üyesi olmadığım projenin görevleri → 403
+GET {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{testToken}}
+
+### 4.3 Olmayan görev → 404
+GET {{baseUrl}}/api/gorevler/{{yokId}}
+Authorization: Bearer {{adminToken}}
+
+
+###############################################################################
+# 5. Görevler: yazma (Gözde'nin hafta4/api-gorev-yazma dalı birleşince)
+###############################################################################
+
+### 5.1 Boş başlıkla görev ekleme → 400 + Türkçe hata
+POST {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "baslik": "", "oncelik": "Orta" }
+
+### 5.2 Story point 150 → 400
+POST {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "baslik": "Swagger testi", "oncelik": "Orta", "storyPoint": 150 }
+
+### 5.3 Üyesi olmadığım projeye görev ekleme → 403
+POST {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{testToken}}
+Content-Type: application/json
+
+{ "baslik": "Yetkisiz görev", "oncelik": "Orta" }
+
+### 5.4 Görev ekleme → 201 + Location başlığı
+# @name gorevEkle
+POST {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "baslik": "Swagger testi", "aciklama": ".http dosyasından eklendi", "oncelik": "Yuksek", "storyPoint": 3 }
+
+### 5.5 Eklenen görevi getir → 200
+GET {{baseUrl}}/api/gorevler/{{gorevEkle.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
+
+### 5.6 Görevi güncelle → 200
+PUT {{baseUrl}}/api/gorevler/{{gorevEkle.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "baslik": "Swagger testi (güncellendi)", "aciklama": null, "oncelik": "Kritik", "durum": "Yapiliyor", "storyPoint": 5 }
+
+### 5.7 Görevi backlog'a al (sprintId null) → 200
+PATCH {{baseUrl}}/api/gorevler/{{gorevEkle.response.body.$.id}}/sprint
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "sprintId": null }
+
+### 5.8 Görevi sil → 204
+DELETE {{baseUrl}}/api/gorevler/{{gorevEkle.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
+
+### 5.9 Aynı görevi tekrar sil → 404
+DELETE {{baseUrl}}/api/gorevler/{{gorevEkle.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
