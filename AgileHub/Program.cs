@@ -137,6 +137,7 @@ if (Encoding.UTF8.GetByteCount(builder.Configuration["Jwt:Key"] ?? string.Empty)
 using (var scope = app.Services.CreateScope())
 {
     await SeedData.BaslangicVerileriniEkleAsync(scope.ServiceProvider);
+    if (app.Environment.IsDevelopment()) await DemoVerisi.EkleAsync(scope.ServiceProvider);
 }
 
 if (!app.Environment.IsDevelopment())

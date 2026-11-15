@@ -207,6 +207,40 @@ Uygulama her açılışta `Data/SeedData.cs` içindeki kodu çalıştırır ve e
 
 Şifre ayarlanmamışsa yönetici hesabı oluşturulmaz ve terminalde bir uyarı görünür.
 
+## Demo verisi
+
+Geliştirme ortamında, veritabanında **hiç proje yoksa** uygulama açılırken `Data/DemoVerisi.cs` gösterim ve testler için örnek bir proje ortamı oluşturur. Veritabanında proje varsa hiçbir şey eklemez; ikinci açılışta kayıtlar çoğalmaz, elle girilen veri bozulmaz. Projeler ve sprintler mobildeki `SampleData` ile aynıdır.
+
+| Proje | Üyeler | Sprintler | Görev |
+| --- | --- | --- | --- |
+| AgileHub Mobil | admin (oluşturan) + 4 ekip üyesi | Sprint 1 ve 2 `Tamamlandı`, Sprint 3 **`Aktif`**, Sprint 4 `Planlanıyor` | 16 (3'ü backlog'da) |
+| AgileHub Web | admin (oluşturan) + 4 ekip üyesi | Sprint 1 `Tamamlandı`, Sprint 2 **`Aktif`**, Raporlama denemesi `İptalEdildi` | 11 (2'si backlog'da) |
+| Kütüphane Otomasyonu | admin (oluşturan) + test | Sprint yok (boş durumlar için) | 3 (hepsi backlog'da) |
+
+- Tarihler uygulamanın açıldığı güne göre hesaplanır: aktif sprintler bugünden 5 gün önce başlar, 9 gün sonra biter.
+- Görevlerde her durum ve öncelikten örnek var; birkaçı atanmamış, birkaçının story point'i yok. `admin@agilehub.local`'e 6 açık görev atanmıştır (ana sayfadaki "Bana atanan görevler" için).
+- Aktif sprint görevlerinde farklı kişilerden yorumlar, bazı görevlerde `Hata`, `Özellik`, `İyileştirme` etiketleri var.
+- `test@agilehub.local` ilk iki projenin üyesi değildir; 403 senaryoları için kullanılabilir.
+
+Demo hesapları (şifre: `SeedAdmin:Password` ile ayarladığınız şifre; ayarlı değilse demo verisi eklenmez ve terminalde uyarı görünür):
+
+| E-posta | Ad Soyad |
+| --- | --- |
+| `admin@agilehub.local` | Sistem Yöneticisi |
+| `test@agilehub.local` | Test Kullanıcı |
+| `esra@agilehub.local` | Esra Meriç Topaktaş |
+| `erkim@agilehub.local` | Erkim Berk Ünsal |
+| `gozde@agilehub.local` | Gözde Sarı |
+| `burcu@agilehub.local` | Burcu Soyuğur |
+
+Veritabanını sıfırlayıp demo verisini baştan oluşturmak için (`AgileHub` klasöründe):
+
+```
+dotnet ef database drop -f
+dotnet ef database update
+dotnet run
+```
+
 ## Yeni bir migration eklendiğinde
 
 Modelde değişiklik yapan kişi migration oluşturur:
