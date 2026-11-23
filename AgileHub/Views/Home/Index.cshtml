@@ -2,12 +2,21 @@
 @{
     ViewData["Title"] = "Ana Sayfa";
 
-    string OncelikRengi(GorevOnceligi oncelik) => oncelik switch
+    // Bu sayfadaki bütün hesaplamalar yalnızca görünüm içindir; veriler controller'dan geldiği gibi kullanılır.
+    var ad = string.IsNullOrWhiteSpace(Model.AdSoyad) ? "" : Model.AdSoyad.Split(' ')[0];
+
+    var toplamSp = Model.AktifSprintler.Sum(s => s.ToplamStoryPoint);
+    var tamamlananSp = Model.AktifSprintler.Sum(s => s.TamamlananStoryPoint);
+    var genelIlerleme = toplamSp == 0 ? 0 : tamamlananSp * 100 / toplamSp;
+
+    var bitisSirasi = Model.AktifSprintler.OrderBy(s => s.BitisTarihi).ToList();
+
+    string OncelikSinifi(GorevOnceligi oncelik) => oncelik switch
     {
-        GorevOnceligi.Kritik => "bg-danger",
-        GorevOnceligi.Yuksek => "bg-warning text-dark",
-        GorevOnceligi.Orta => "bg-primary",
-        _ => "bg-secondary"
+        GorevOnceligi.Kritik => "rozet-kirmizi",
+        GorevOnceligi.Yuksek => "rozet-turuncu",
+        GorevOnceligi.Orta => "rozet-mavi",
+        _ => "rozet-gri"
     };
 
     string OncelikMetni(GorevOnceligi oncelik) => oncelik switch
@@ -25,140 +34,235 @@
         GorevDurumu.Bitti => "Bitti",
         _ => "Yapılacak"
     };
+
+    string KalanGunMetni(int gun) => gun == 0 ? "Bugün bitiyor" : $"{gun} gün kaldı";
+
+    string BasHarf(string metin) => string.IsNullOrWhiteSpace(metin) ? "?" : metin.Trim()[..1].ToUpper();
 }
 
-<h1 class="h3 mb-3">Merhaba@(string.IsNullOrWhiteSpace(Model.AdSoyad) ? "" : ", " + Model.AdSoyad)</h1>
+<link rel="stylesheet" href="~/css/anasayfa.css" asp-append-version="true" />
 
-@* Özet kartları *@
-<div class="row g-3 mb-4">
-    <div class="col-12 col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-6">@Model.ProjeSayisi</div>
-                <a class="text-muted stretched-link text-decoration-none" asp-controller="Proje" asp-action="Index">Projelerim</a>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-6">@Model.AcikGorevSayisi</div>
-                <div class="text-muted">Bana atanan açık görev</div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="card text-center h-100">
-            <div class="card-body">
-                <div class="display-6">@Model.AktifSprintSayisi</div>
-                <div class="text-muted">Aktif sprint</div>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="pano">
+    <div class="pano-ic pano-izgara">
+        @* ---------- Sol ve orta: karşılama, özet, kısayollar, sprintler, görevler ---------- *@
+        <div class="pano-ana">
 
-<div class="row g-4">
-    @* Sol sütun: aktif sprintler ve görevler *@
-    <div class="col-12 col-lg-8">
-        <section class="mb-4">
-            <h2 class="h5">Aktif sprintlerim</h2>
-            @if (!Model.AktifSprintler.Any())
-            {
-                <p class="text-muted">Üyesi olduğun projelerde şu an aktif sprint yok.</p>
-            }
-            else
-            {
-                <div class="row g-3">
-                    @foreach (var sprint in Model.AktifSprintler)
-                    {
-                        <div class="col-12 col-md-6">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <h3 class="h6 mb-1">
-                                            <a class="stretched-link text-decoration-none" asp-controller="Sprint" asp-action="Details" asp-route-id="@sprint.Id">@sprint.Ad</a>
-                                        </h3>
-                                        <span class="badge @(sprint.KalanGun <= 2 ? "bg-danger" : "bg-success")">
-                                            @(sprint.KalanGun == 0 ? "Bugün bitiyor" : $"{sprint.KalanGun} gün kaldı")
-                                        </span>
-                                    </div>
-                                    <div class="text-muted small mb-2">@sprint.ProjeAdi · bitiş @sprint.BitisTarihi.ToString("dd.MM.yyyy")</div>
-                                    <div class="progress" role="progressbar" aria-label="Story point ilerlemesi"
-                                         aria-valuenow="@sprint.IlerlemeYuzdesi" aria-valuemin="0" aria-valuemax="100">
-                                        <div class="progress-bar" style="width: @sprint.IlerlemeYuzdesi%"></div>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                        @sprint.TamamlananStoryPoint / @sprint.ToplamStoryPoint SP tamamlandı (%@sprint.IlerlemeYuzdesi)
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
+            <section class="karsilama">
+                <div>
+                    <h1>Merhaba@(ad == "" ? "" : " " + ad) <span aria-hidden="true">👋</span></h1>
+                    <p>AgileHub'a hoş geldin! Ekiplerinle birlikte projelerini planla, takip et ve hedeflerine ulaş.</p>
                 </div>
-            }
-        </section>
+                <p class="karsilama-soz">"Küçük adımlar,<br />büyük ürünler."</p>
+            </section>
 
-        <section class="mb-4">
-            <h2 class="h5">Bana atanan görevler</h2>
-            @if (!Model.BanaAtananGorevler.Any())
-            {
-                <p class="text-muted">Sana atanmış açık görev yok.</p>
-            }
-            else
-            {
-                <div class="list-group">
-                    @foreach (var gorev in Model.BanaAtananGorevler)
-                    {
-                        <a class="list-group-item list-group-item-action" href="/Gorev/Details/@gorev.Id">
-                            <div class="d-flex justify-content-between align-items-start gap-2">
-                                <span class="fw-semibold">@gorev.Baslik</span>
-                                <span class="badge @OncelikRengi(gorev.Oncelik)">@OncelikMetni(gorev.Oncelik)</span>
-                            </div>
-                            <div class="small text-muted">
-                                @gorev.Proje?.Ad · @DurumMetni(gorev.Durum)
-                                @if (gorev.StoryPoint is int sp)
-                                {
-                                    <span>· @sp SP</span>
-                                }
-                            </div>
-                        </a>
-                    }
+            @* Özet kartları *@
+            <section class="ozet-izgara" aria-label="Özet">
+                <a class="ozet-kart" href="/Proje">
+                    <span class="ozet-simge simge-mavi" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+                    </span>
+                    <span class="ozet-metin">
+                        <span class="ozet-baslik">Toplam proje</span>
+                        <span class="ozet-sayi">@Model.ProjeSayisi</span>
+                        <span class="ozet-alt">Üyesi olduğun</span>
+                    </span>
+                </a>
+                <a class="ozet-kart" href="#aktif-sprintler">
+                    <span class="ozet-simge simge-yesil" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg>
+                    </span>
+                    <span class="ozet-metin">
+                        <span class="ozet-baslik">Aktif sprint</span>
+                        <span class="ozet-sayi">@Model.AktifSprintSayisi</span>
+                        <span class="ozet-alt">Devam eden</span>
+                    </span>
+                </a>
+                <a class="ozet-kart" href="#gorevlerim">
+                    <span class="ozet-simge simge-mor" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" /></svg>
+                    </span>
+                    <span class="ozet-metin">
+                        <span class="ozet-baslik">Açık görevim</span>
+                        <span class="ozet-sayi">@Model.AcikGorevSayisi</span>
+                        <span class="ozet-alt">Bana atanan</span>
+                    </span>
+                </a>
+                <a class="ozet-kart" href="#aktif-sprintler">
+                    <span class="ozet-simge simge-turuncu" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+                    </span>
+                    <span class="ozet-metin">
+                        <span class="ozet-baslik">Sprint ilerlemesi</span>
+                        <span class="ozet-sayi">%@genelIlerleme</span>
+                        <span class="ozet-alt">@tamamlananSp / @toplamSp story point</span>
+                    </span>
+                </a>
+            </section>
+
+            @* Kısayollar *@
+            <section class="kisayol-izgara" aria-label="Kısayollar">
+                <a class="kisayol" href="/Proje">
+                    <span class="ozet-simge simge-mavi" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0M3 21a9 9 0 0 1 18 0" /></svg>
+                    </span>
+                    <span>
+                        <strong>Projeler ve ekip</strong>
+                        <small>Proje oluştur, ekip arkadaşlarını e-posta ile projeye ekle.</small>
+                    </span>
+                    <span class="kisayol-ok" aria-hidden="true">›</span>
+                </a>
+                <a class="kisayol" href="/Proje">
+                    <span class="ozet-simge simge-mavi" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" /></svg>
+                    </span>
+                    <span>
+                        <strong>Backlog ve sprintler</strong>
+                        <small>Görevleri önceliğe ve story point'e göre planla, sprintlere ata.</small>
+                    </span>
+                    <span class="kisayol-ok" aria-hidden="true">›</span>
+                </a>
+                <a class="kisayol" href="#aktif-sprintler">
+                    <span class="ozet-simge simge-mor" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9z" /></svg>
+                    </span>
+                    <span>
+                        <strong>İlerleme takibi</strong>
+                        <small>Aktif sprintleri, kalan günleri ve sana atanan görevleri tek bakışta gör.</small>
+                    </span>
+                    <span class="kisayol-ok" aria-hidden="true">›</span>
+                </a>
+            </section>
+
+            @* Aktif sprintler *@
+            <section id="aktif-sprintler">
+                <div class="bolum-baslik">
+                    <h2>Aktif sprintler</h2>
                 </div>
-                @if (Model.AcikGorevSayisi > Model.BanaAtananGorevler.Count)
+                @if (!Model.AktifSprintler.Any())
                 {
-                    <div class="small text-muted mt-2">
-                        En öncelikli @Model.BanaAtananGorevler.Count görev gösteriliyor (toplam @Model.AcikGorevSayisi).
+                    <p class="bos-metin bos-kutu">Üyesi olduğun projelerde şu an aktif sprint yok.</p>
+                }
+                else
+                {
+                    <div class="sprint-izgara">
+                        @foreach (var sprint in Model.AktifSprintler)
+                        {
+                            <a class="sprint-kart" href="/Sprint/Details/@sprint.Id">
+                                <span class="sprint-ust">
+                                    <strong>@sprint.Ad</strong>
+                                    <span class="rozet @(sprint.KalanGun <= 2 ? "rozet-kirmizi" : "rozet-yesil")">@KalanGunMetni(sprint.KalanGun)</span>
+                                </span>
+                                <span class="sprint-alt">@sprint.ProjeAdi · bitiş @sprint.BitisTarihi.ToString("dd.MM.yyyy")</span>
+                                <span class="ilerleme-satir">
+                                    <span class="ilerleme" role="progressbar" aria-label="Story point ilerlemesi"
+                                          aria-valuenow="@sprint.IlerlemeYuzdesi" aria-valuemin="0" aria-valuemax="100">
+                                        <span class="ilerleme-dolu" style="width: @sprint.IlerlemeYuzdesi%"></span>
+                                    </span>
+                                    <span class="ilerleme-yuzde">%@sprint.IlerlemeYuzdesi</span>
+                                </span>
+                                <span class="sprint-alt">@sprint.TamamlananStoryPoint / @sprint.ToplamStoryPoint story point tamamlandı</span>
+                            </a>
+                        }
                     </div>
                 }
-            }
-        </section>
-    </div>
+            </section>
 
-    @* Sağ sütun: son projeler *@
-    <div class="col-12 col-lg-4">
-        <section>
-            <div class="d-flex justify-content-between align-items-center">
-                <h2 class="h5 mb-2">Son projeler</h2>
-                <a class="small" asp-controller="Proje" asp-action="Index">Tümü</a>
-            </div>
-            @if (!Model.SonProjeler.Any())
-            {
-                <p class="text-muted">
-                    Henüz bir projen yok. <a asp-controller="Proje" asp-action="Create">İlk projeni oluştur.</a>
-                </p>
-            }
-            else
-            {
-                <div class="list-group">
-                    @foreach (var proje in Model.SonProjeler)
-                    {
-                        <a class="list-group-item list-group-item-action" asp-controller="Proje" asp-action="Details" asp-route-id="@proje.Id">
-                            <div class="fw-semibold">@proje.Ad</div>
-                            <div class="small text-muted">@proje.OlusturmaTarihi.ToString("dd.MM.yyyy")</div>
-                        </a>
-                    }
+            @* Bana atanan görevler *@
+            <section id="gorevlerim">
+                <div class="bolum-baslik">
+                    <h2>Bana atanan görevler</h2>
                 </div>
-            }
-        </section>
+                @if (!Model.BanaAtananGorevler.Any())
+                {
+                    <p class="bos-metin bos-kutu">Sana atanmış açık görev yok.</p>
+                }
+                else
+                {
+                    <div class="gorev-liste">
+                        @foreach (var gorev in Model.BanaAtananGorevler)
+                        {
+                            <a class="gorev-satir" href="/Gorev/Details/@gorev.Id">
+                                <span class="gorev-bilgi">
+                                    <strong>@gorev.Baslik</strong>
+                                    <small>
+                                        @gorev.Proje?.Ad · @DurumMetni(gorev.Durum)
+                                        @if (gorev.StoryPoint is int sp)
+                                        {
+                                            <span>· @sp SP</span>
+                                        }
+                                    </small>
+                                </span>
+                                <span class="rozet @OncelikSinifi(gorev.Oncelik)">@OncelikMetni(gorev.Oncelik)</span>
+                            </a>
+                        }
+                    </div>
+                    @if (Model.AcikGorevSayisi > Model.BanaAtananGorevler.Count)
+                    {
+                        <p class="bos-metin mt-2">
+                            En öncelikli @Model.BanaAtananGorevler.Count görev gösteriliyor (toplam @Model.AcikGorevSayisi).
+                        </p>
+                    }
+                }
+            </section>
+        </div>
+
+        @* ---------- Sağ sütun: yaklaşan bitişler ve son projeler ---------- *@
+        <aside class="pano-yan">
+            <section class="yan-kart">
+                <div class="bolum-baslik">
+                    <h2>Yaklaşan sprint bitişleri</h2>
+                </div>
+                @if (!bitisSirasi.Any())
+                {
+                    <p class="bos-metin">Aktif sprint yok.</p>
+                }
+                else
+                {
+                    <ol class="zaman-cizelgesi">
+                        @foreach (var sprint in bitisSirasi)
+                        {
+                            <li>
+                                <span class="zaman-nokta @(sprint.KalanGun <= 2 ? "nokta-kirmizi" : "nokta-yesil")" aria-hidden="true"></span>
+                                <a href="/Sprint/Details/@sprint.Id">
+                                    <strong>@sprint.Ad</strong>
+                                    <small>@sprint.ProjeAdi · @sprint.BitisTarihi.ToString("dd.MM.yyyy")</small>
+                                </a>
+                                <span class="rozet @(sprint.KalanGun <= 2 ? "rozet-kirmizi" : "rozet-yesil")">@KalanGunMetni(sprint.KalanGun)</span>
+                            </li>
+                        }
+                    </ol>
+                }
+            </section>
+
+            <section class="yan-kart">
+                <div class="bolum-baslik">
+                    <h2>Son projeler</h2>
+                    <a href="/Proje">Tümünü gör</a>
+                </div>
+                @if (!Model.SonProjeler.Any())
+                {
+                    <p class="bos-metin">
+                        Henüz bir projen yok. <a href="/Proje/Create">İlk projeni oluştur.</a>
+                    </p>
+                }
+                else
+                {
+                    <ul class="proje-liste">
+                        @foreach (var proje in Model.SonProjeler)
+                        {
+                            <li>
+                                <a href="/Proje/Details/@proje.Id">
+                                    <span class="bas-harf" aria-hidden="true">@BasHarf(proje.Ad)</span>
+                                    <span>
+                                        <strong>@proje.Ad</strong>
+                                        <small>@proje.OlusturmaTarihi.ToString("dd.MM.yyyy")</small>
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </aside>
     </div>
 </div>

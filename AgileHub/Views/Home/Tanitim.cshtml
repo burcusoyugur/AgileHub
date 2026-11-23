@@ -2,43 +2,91 @@
     ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="row justify-content-center py-4">
-    <div class="col-12 col-lg-8 text-center">
-        <h1 class="display-5 fw-bold">AgileHub</h1>
-        <p class="lead mt-3">
-            Yazılım ekipleri için çevik proje takip portalı. Projelerini oluştur, iş listeni (backlog) yönet,
-            görevleri sprintlere böl ve ekibinin ilerlemesini tek yerden takip et.
-        </p>
-        <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
-            <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Login">Giriş yap</a>
-            <a class="btn btn-outline-primary btn-lg" asp-controller="Account" asp-action="Register">Kayıt ol</a>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="~/css/anasayfa.css" asp-append-version="true" />
 
-<div class="row g-3 mt-2">
-    <div class="col-12 col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h2 class="h5">Projeler ve ekip</h2>
-                <p class="card-text text-muted mb-0">Proje oluştur, ekip arkadaşlarını e-posta ile projeye ekle.</p>
+<div class="pano">
+    <div class="pano-ic">
+        <section class="tanitim-ust">
+            <div>
+                <span class="tanitim-etiket">Çevik proje takip portalı</span>
+                <h1>Ekibinle planla, takip et, hedefe ulaş.</h1>
+                <p>
+                    AgileHub yazılım ekipleri için tek yerden proje yönetimi sunar. Projelerini oluştur,
+                    iş listeni (backlog) yönet, görevleri sprintlere böl ve ekibinin ilerlemesini anlık takip et.
+                </p>
+                <div class="tanitim-butonlar">
+                    <a class="buton buton-dolu" asp-controller="Account" asp-action="Login">Giriş yap</a>
+                    <a class="buton buton-cizgi" asp-controller="Account" asp-action="Register">Kayıt ol</a>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h2 class="h5">Backlog ve sprintler</h2>
-                <p class="card-text text-muted mb-0">Görevleri önceliğe ve story point'e göre planla, sprintlere ata.</p>
+
+            @* Giriş yapınca görülecek panonun küçük bir önizlemesi (sabit örnek değerler). *@
+            <div class="onizleme" aria-hidden="true">
+                <div class="onizleme-satir">
+                    <div class="ozet-kart">
+                        <span class="ozet-simge simge-mavi">
+                            <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+                        </span>
+                        <span class="ozet-metin">
+                            <span class="ozet-baslik">Proje</span>
+                            <span class="ozet-sayi">4</span>
+                        </span>
+                    </div>
+                    <div class="ozet-kart">
+                        <span class="ozet-simge simge-yesil">
+                            <svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z" /></svg>
+                        </span>
+                        <span class="ozet-metin">
+                            <span class="ozet-baslik">Aktif sprint</span>
+                            <span class="ozet-sayi">2</span>
+                        </span>
+                    </div>
+                    <div class="ozet-kart">
+                        <span class="ozet-simge simge-mor">
+                            <svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9" /></svg>
+                        </span>
+                        <span class="ozet-metin">
+                            <span class="ozet-baslik">Açık görev</span>
+                            <span class="ozet-sayi">12</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="sprint-kart">
+                    <span class="sprint-ust">
+                        <strong>Sprint 12</strong>
+                        <span class="rozet rozet-yesil">5 gün kaldı</span>
+                    </span>
+                    <span class="sprint-alt">Platform geliştirme</span>
+                    <span class="ilerleme-satir">
+                        <span class="ilerleme"><span class="ilerleme-dolu" style="width: 72%"></span></span>
+                        <span class="ilerleme-yuzde">%72</span>
+                    </span>
+                </div>
             </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h2 class="h5">İlerleme takibi</h2>
-                <p class="card-text text-muted mb-0">Aktif sprintleri, kalan günleri ve sana atanan görevleri tek bakışta gör.</p>
+        </section>
+
+        <section class="tanitim-ozellikler">
+            <div class="ozellik">
+                <span class="ozet-simge simge-mavi" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M16 11a4 4 0 1 0-8 0M3 21a9 9 0 0 1 18 0" /></svg>
+                </span>
+                <h2>Projeler ve ekip</h2>
+                <p>Proje oluştur, ekip arkadaşlarını e-posta ile projeye ekle.</p>
             </div>
-        </div>
+            <div class="ozellik">
+                <span class="ozet-simge simge-yesil" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10" /></svg>
+                </span>
+                <h2>Backlog ve sprintler</h2>
+                <p>Görevleri önceliğe ve story point'e göre planla, sprintlere ata.</p>
+            </div>
+            <div class="ozellik">
+                <span class="ozet-simge simge-mor" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9h-9z" /></svg>
+                </span>
+                <h2>İlerleme takibi</h2>
+                <p>Aktif sprintleri, kalan günleri ve sana atanan görevleri tek bakışta gör.</p>
+            </div>
+        </section>
     </div>
 </div>

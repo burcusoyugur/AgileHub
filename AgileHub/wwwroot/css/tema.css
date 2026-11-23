@@ -1,0 +1,268 @@
+/* AgileHub koyu teması — bütün sayfalar.
+   _Layout.cshtml içinde <html data-bs-theme="dark"> ile Bootstrap'in kendi koyu modu açılır;
+   bu dosya da renkleri ana sayfadaki (anasayfa.css) paletle aynı yapar.
+   Yalnızca görünüm: hiçbir sayfanın HTML'i, formu ya da bağlantısı değişmez. */
+
+/* ---------- Ortak renkler (anasayfa.css'teki .pano değişkenleriyle aynı) ---------- */
+:root {
+    --ah-zemin: #0b1022;
+    --ah-ust: #0e1530;
+    --ah-kart: #121a33;
+    --ah-kart-acik: #18213f;
+    --ah-cizgi: rgba(148, 163, 214, 0.14);
+    --ah-yazi: #e8ecf8;
+    --ah-soluk: #94a0c2;
+    --ah-mavi: #4f7cff;
+    --ah-mor: #8b5cf6;
+    --ah-yesil: #22c3a6;
+    --ah-turuncu: #f5a524;
+    --ah-kirmizi: #f05d6c;
+}
+
+/* Bootstrap'in koyu mod değişkenlerini AgileHub paletine çeviriyoruz.
+   Kart, tablo, form, liste gibi bütün Bootstrap bileşenleri bu değişkenleri kullanır. */
+[data-bs-theme="dark"] {
+    --bs-body-bg: var(--ah-zemin);
+    --bs-body-bg-rgb: 11, 16, 34;
+    --bs-body-color: var(--ah-yazi);
+    --bs-body-color-rgb: 232, 236, 248;
+    --bs-emphasis-color: #ffffff;
+    --bs-secondary-color: var(--ah-soluk);
+    --bs-secondary-bg: var(--ah-kart-acik);
+    --bs-tertiary-bg: var(--ah-kart);
+    --bs-border-color: var(--ah-cizgi);
+    --bs-border-color-translucent: var(--ah-cizgi);
+    --bs-heading-color: #ffffff;
+    --bs-link-color: #8fb0ff;
+    --bs-link-color-rgb: 143, 176, 255;
+    --bs-link-hover-color: #b5ccff;
+    --bs-link-hover-color-rgb: 181, 204, 255;
+    --bs-primary: var(--ah-mavi);
+    --bs-primary-rgb: 79, 124, 255;
+    --bs-focus-ring-color: rgba(79, 124, 255, 0.35);
+    color-scheme: dark;
+}
+
+/* ---------- Sayfa zemini ---------- */
+body {
+    background: radial-gradient(1200px 520px at 15% -10%, #1b2a6b 0%, transparent 60%) no-repeat, var(--ah-zemin);
+    color: var(--ah-yazi);
+}
+
+main {
+    padding-top: 28px;
+}
+
+h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5 {
+    color: #ffffff;
+}
+
+.text-muted {
+    color: var(--ah-soluk) !important;
+}
+
+/* ---------- Üst menü ve alt bilgi ---------- */
+header .navbar {
+    background: var(--ah-ust) !important;
+    border-bottom: 1px solid var(--ah-cizgi) !important;
+    box-shadow: none !important;
+    margin-bottom: 0 !important;
+}
+
+header .navbar-brand {
+    color: #ffffff !important;
+    font-weight: 700;
+}
+
+header .nav-link,
+header .navbar-text {
+    color: #c9d2f0 !important;
+}
+
+header .nav-link:hover,
+header .nav-link:focus {
+    color: #ffffff !important;
+}
+
+.footer {
+    background: var(--ah-zemin);
+    color: #6f7ba0 !important;
+    border-top: 1px solid var(--ah-cizgi) !important;
+}
+
+/* ---------- Kartlar ve listeler ---------- */
+.card {
+    --bs-card-bg: var(--ah-kart);
+    --bs-card-border-color: var(--ah-cizgi);
+    --bs-card-cap-bg: var(--ah-kart-acik);
+    --bs-card-border-radius: 16px;
+    --bs-card-inner-border-radius: 15px;
+    transition: border-color 0.15s;
+}
+
+.card:hover {
+    border-color: rgba(79, 124, 255, 0.45);
+}
+
+.list-group {
+    --bs-list-group-bg: var(--ah-kart);
+    --bs-list-group-border-color: var(--ah-cizgi);
+    --bs-list-group-action-hover-bg: var(--ah-kart-acik);
+    --bs-list-group-border-radius: 14px;
+}
+
+/* ---------- Tablolar ---------- */
+.table {
+    --bs-table-bg: var(--ah-kart);
+    --bs-table-border-color: var(--ah-cizgi);
+    --bs-table-hover-bg: var(--ah-kart-acik);
+    --bs-table-striped-bg: rgba(148, 163, 214, 0.05);
+}
+
+/* ---------- Formlar ---------- */
+.form-control,
+.form-select {
+    background-color: #0f1630;
+    border-color: rgba(148, 163, 214, 0.25);
+    color: var(--ah-yazi);
+    border-radius: 10px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #0f1630;
+    border-color: var(--ah-mavi);
+    color: #ffffff;
+}
+
+.form-control::placeholder {
+    color: #6f7ba0;
+}
+
+.form-check-input {
+    background-color: #0f1630;
+    border-color: rgba(148, 163, 214, 0.35);
+}
+
+.form-check-input:checked {
+    background-color: var(--ah-mavi);
+    border-color: var(--ah-mavi);
+}
+
+/* site.css'teki beyaz odak halkası koyu zeminde göze batıyordu. */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(79, 124, 255, 0.35);
+}
+
+/* ---------- Butonlar ---------- */
+.btn {
+    border-radius: 10px;
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--ah-mavi);
+    --bs-btn-border-color: var(--ah-mavi);
+    --bs-btn-hover-bg: #6a90ff;
+    --bs-btn-hover-border-color: #6a90ff;
+    --bs-btn-active-bg: #3f68e0;
+    --bs-btn-active-border-color: #3f68e0;
+    background: linear-gradient(135deg, #4f7cff, #6d5cf6);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #6a90ff, #8170ff);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: #8fb0ff;
+    --bs-btn-border-color: rgba(79, 124, 255, 0.6);
+    --bs-btn-hover-bg: var(--ah-mavi);
+    --bs-btn-hover-border-color: var(--ah-mavi);
+    --bs-btn-active-bg: var(--ah-mavi);
+}
+
+.btn-outline-secondary {
+    --bs-btn-color: #c9d2f0;
+    --bs-btn-border-color: rgba(148, 163, 214, 0.35);
+    --bs-btn-hover-bg: var(--ah-kart-acik);
+    --bs-btn-hover-border-color: rgba(148, 163, 214, 0.5);
+    --bs-btn-hover-color: #ffffff;
+}
+
+.btn-link {
+    --bs-btn-color: #8fb0ff;
+    --bs-btn-hover-color: #b5ccff;
+}
+
+.btn-success {
+    --bs-btn-bg: #14b8a6;
+    --bs-btn-border-color: #14b8a6;
+    --bs-btn-hover-bg: var(--ah-yesil);
+    --bs-btn-hover-border-color: var(--ah-yesil);
+    --bs-btn-active-bg: #0f9e8e;
+    --bs-btn-active-border-color: #0f9e8e;
+}
+
+.btn-danger {
+    --bs-btn-bg: #e14b5b;
+    --bs-btn-border-color: #e14b5b;
+    --bs-btn-hover-bg: var(--ah-kirmizi);
+    --bs-btn-hover-border-color: var(--ah-kirmizi);
+    --bs-btn-active-bg: #c93f4e;
+    --bs-btn-active-border-color: #c93f4e;
+}
+
+/* Backlog / Tüm görevler gibi sekme butonları */
+.nav-pills {
+    --bs-nav-pills-border-radius: 10px;
+    --bs-nav-pills-link-active-bg: var(--ah-mavi);
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #4f7cff, #6d5cf6);
+}
+
+/* ---------- Uyarılar ---------- */
+.alert {
+    border-radius: 14px;
+}
+
+.alert-success { --bs-alert-bg: rgba(34, 195, 166, 0.12); --bs-alert-border-color: rgba(34, 195, 166, 0.35); --bs-alert-color: #6ee8cf; }
+.alert-danger  { --bs-alert-bg: rgba(240, 93, 108, 0.12); --bs-alert-border-color: rgba(240, 93, 108, 0.35); --bs-alert-color: #ff9aa4; }
+.alert-info    { --bs-alert-bg: rgba(79, 124, 255, 0.12); --bs-alert-border-color: rgba(79, 124, 255, 0.35); --bs-alert-color: #a9c1ff; }
+.alert-warning { --bs-alert-bg: rgba(245, 165, 36, 0.12); --bs-alert-border-color: rgba(245, 165, 36, 0.35); --bs-alert-color: #ffc062; }
+
+.text-danger {
+    color: #ff8b97 !important;
+}
+
+/* ---------- Rozetler (ana sayfadaki rozetlerle aynı yumuşak renkler) ---------- */
+.badge {
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.4em 0.85em;
+}
+
+.badge.bg-danger    { background: rgba(240, 93, 108, 0.18) !important; color: #ff8b97 !important; }
+.badge.bg-warning   { background: rgba(245, 165, 36, 0.18) !important; color: #ffc062 !important; }
+.badge.bg-info      { background: rgba(79, 124, 255, 0.2) !important; color: #8fb0ff !important; }
+.badge.bg-success   { background: rgba(34, 195, 166, 0.18) !important; color: #4fe0c3 !important; }
+.badge.bg-primary   { background: rgba(139, 92, 246, 0.2) !important; color: #c4a8ff !important; }
+.badge.bg-dark      { background: rgba(56, 189, 248, 0.16) !important; color: #7dd3fc !important; }
+.badge.bg-secondary,
+.badge.bg-light     { background: rgba(148, 163, 214, 0.16) !important; color: var(--ah-soluk) !important; border: none !important; }
+
+/* ---------- İlerleme çubuğu ---------- */
+.progress {
+    --bs-progress-bg: rgba(148, 163, 214, 0.18);
+    border-radius: 999px;
+}
+
+.progress-bar.bg-success {
+    background: linear-gradient(90deg, #14b8a6, var(--ah-yesil)) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card { transition: none; }
+}
