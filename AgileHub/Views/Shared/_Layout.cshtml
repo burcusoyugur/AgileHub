@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-bs-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,10 +8,11 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/AgileHub.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tema.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">AgileHub</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
@@ -21,12 +22,12 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Proje" asp-action="Index">Projelerim</a>
+                                <a class="nav-link" asp-area="" asp-controller="Proje" asp-action="Index">Projelerim</a>
                             </li>
                         }
                     </ul>
@@ -38,17 +39,17 @@
                             </li>
                             <li class="nav-item">
                                 <form asp-area="" asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                    <button type="submit" class="btn btn-link nav-link text-dark">Çıkış</button>
+                                    <button type="submit" class="btn btn-link nav-link">Çıkış</button>
                                 </form>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">Giriş Yap</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Register">Kayıt Ol</a>
+                                <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">Kayıt Ol</a>
                             </li>
                         }
                     </ul>

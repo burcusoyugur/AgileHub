@@ -1,0 +1,293 @@
+/* Ana sayfa (pano) ve tanıtım sayfasının özel düzeni.
+   Bütün kurallar .pano içine yazıldı; bu sınıf yalnızca Views/Home/Index ve Tanitim'de var.
+   Üst menü, zemin, alt bilgi ve Bootstrap bileşenlerinin koyu rengi bütün sayfalar için tema.css'te. */
+
+/* ---------- Bu iki sayfada içerik tam genişlikte, boşluksuz ---------- */
+body:has(.pano) > .container {
+    max-width: none;
+    padding: 0;
+}
+
+body:has(.pano) main {
+    padding-top: 0;
+    padding-bottom: 0 !important;
+}
+
+/* ---------- Değişkenler ve zemin ---------- */
+.pano {
+    --zemin: #0b1022;
+    --kart: #121a33;
+    --kart-acik: #18213f;
+    --cizgi: rgba(148, 163, 214, 0.14);
+    --yazi: #e8ecf8;
+    --soluk: #94a0c2;
+    --mavi: #4f7cff;
+    --mor: #8b5cf6;
+    --yesil: #22c3a6;
+    --turuncu: #f5a524;
+    --kirmizi: #f05d6c;
+
+    background: radial-gradient(1200px 520px at 15% -10%, #1b2a6b 0%, transparent 60%), var(--zemin);
+    color: var(--yazi);
+    min-height: calc(100vh - 56px - 60px);
+    padding: 32px clamp(16px, 3vw, 48px) 48px;
+    font-size: 1rem;
+}
+
+.pano-ic {
+    max-width: 1560px;
+    margin: 0 auto;
+}
+
+.pano a { color: inherit; text-decoration: none; }
+.pano h1 { font-size: 2.25rem; font-weight: 700; margin: 0 0 8px; color: #fff; }
+.pano h2 { font-size: 1.2rem; font-weight: 600; margin: 0; color: #fff; }
+
+/* ---------- Pano düzeni ---------- */
+.pano .pano-izgara {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 24px;
+}
+
+.pano .pano-ana { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.pano .pano-yan { display: flex; flex-direction: column; gap: 24px; }
+
+/* ---------- Karşılama ---------- */
+.pano .karsilama {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 32px;
+    border-radius: 18px;
+    background: linear-gradient(120deg, #1a2350 0%, #233a8f 60%, #3b2a8a 100%);
+    border: 1px solid var(--cizgi);
+}
+
+.pano .karsilama p { color: #c9d2f0; margin: 0; max-width: 52ch; font-size: 1.08rem; }
+.pano .karsilama-soz { font-style: italic; font-size: 0.95rem !important; text-align: right; color: #aeb9e6 !important; }
+
+/* ---------- Kartların ortak görünümü ---------- */
+.pano .ozet-kart,
+.pano .kisayol,
+.pano .sprint-kart,
+.pano .yan-kart,
+.pano .gorev-satir {
+    background: var(--kart);
+    border: 1px solid var(--cizgi);
+    border-radius: 16px;
+    transition: border-color 0.15s, transform 0.15s;
+}
+
+.pano .ozet-kart:hover,
+.pano .kisayol:hover,
+.pano .sprint-kart:hover,
+.pano .gorev-satir:hover {
+    border-color: rgba(79, 124, 255, 0.55);
+    transform: translateY(-2px);
+}
+
+/* ---------- Özet kartları ---------- */
+.pano .ozet-izgara { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.pano .ozet-kart { display: flex; gap: 16px; padding: 22px; align-items: flex-start; }
+.pano .ozet-metin { display: flex; flex-direction: column; min-width: 0; }
+.pano .ozet-baslik { font-size: 0.98rem; color: var(--soluk); }
+.pano .ozet-sayi { font-size: 2.25rem; font-weight: 700; line-height: 1.15; color: #fff; }
+.pano .ozet-alt { font-size: 0.88rem; color: var(--soluk); }
+
+.pano .ozet-simge {
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+}
+
+.pano .ozet-simge svg {
+    width: 24px;
+    height: 24px;
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pano .simge-mavi { background: linear-gradient(135deg, #3b82f6, #4f46e5); }
+.pano .simge-yesil { background: linear-gradient(135deg, #14b8a6, #059669); }
+.pano .simge-mor { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.pano .simge-turuncu { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+/* ---------- Kısayollar ---------- */
+.pano .kisayol-izgara { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.pano .kisayol { display: flex; gap: 16px; align-items: center; padding: 22px; }
+.pano .kisayol strong { display: block; font-size: 1.08rem; color: #fff; }
+.pano .kisayol small { display: block; color: var(--soluk); font-size: 0.92rem; line-height: 1.45; margin-top: 4px; }
+.pano .kisayol-ok { margin-left: auto; font-size: 1.6rem; color: var(--soluk); }
+
+/* ---------- Bölüm başlıkları ---------- */
+.pano .bolum-baslik { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.pano .bolum-baslik a { color: var(--mavi); font-size: 0.95rem; }
+.pano .bos-metin { color: var(--soluk); font-size: 1rem; margin: 0; }
+.pano .bos-metin a { color: var(--mavi); }
+
+.pano .bos-kutu {
+    border: 1px dashed var(--cizgi);
+    border-radius: 16px;
+    padding: 22px;
+    background: rgba(18, 26, 51, 0.5);
+}
+
+/* ---------- Sprint kartları ---------- */
+.pano .sprint-izgara { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+.pano .sprint-kart { display: flex; flex-direction: column; gap: 10px; padding: 22px; }
+.pano .sprint-ust { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pano .sprint-ust strong { font-size: 1.08rem; color: #fff; }
+.pano .sprint-alt { color: var(--soluk); font-size: 0.9rem; }
+
+.pano .ilerleme-satir { display: flex; align-items: center; gap: 12px; }
+.pano .ilerleme { flex: 1; height: 10px; border-radius: 999px; background: rgba(148, 163, 214, 0.18); overflow: hidden; }
+.pano .ilerleme-dolu { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--mavi), var(--mor)); }
+.pano .ilerleme-yuzde { font-size: 0.9rem; color: var(--soluk); min-width: 3.5ch; text-align: right; }
+
+/* ---------- Rozetler ---------- */
+.pano .rozet { flex: none; font-size: 0.8rem; font-weight: 600; padding: 4px 12px; border-radius: 999px; white-space: nowrap; }
+.pano .rozet-yesil { background: rgba(34, 195, 166, 0.16); color: #4fe0c3; }
+.pano .rozet-kirmizi { background: rgba(240, 93, 108, 0.16); color: #ff8b97; }
+.pano .rozet-turuncu { background: rgba(245, 165, 36, 0.16); color: #ffc062; }
+.pano .rozet-mavi { background: rgba(79, 124, 255, 0.18); color: #8fb0ff; }
+.pano .rozet-gri { background: rgba(148, 163, 214, 0.16); color: var(--soluk); }
+
+/* ---------- Görev listesi ---------- */
+.pano .gorev-liste { display: flex; flex-direction: column; gap: 10px; }
+.pano .gorev-satir { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 16px 20px; }
+.pano .gorev-bilgi { display: flex; flex-direction: column; min-width: 0; }
+.pano .gorev-bilgi strong { font-size: 1.02rem; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pano .gorev-bilgi small { color: var(--soluk); font-size: 0.88rem; }
+
+/* ---------- Sağ sütun ---------- */
+.pano .yan-kart { padding: 24px; }
+
+.pano .zaman-cizelgesi { list-style: none; margin: 0; padding: 0 0 0 4px; position: relative; }
+.pano .zaman-cizelgesi::before { content: ""; position: absolute; left: 9px; top: 12px; bottom: 12px; width: 2px; background: var(--cizgi); }
+.pano .zaman-cizelgesi li { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 0 10px 28px; }
+.pano .zaman-cizelgesi li a { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.pano .zaman-cizelgesi strong { font-size: 0.98rem; color: #fff; }
+.pano .zaman-cizelgesi small { color: var(--soluk); font-size: 0.85rem; }
+
+.pano .zaman-nokta { position: absolute; left: 1px; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--zemin); }
+.pano .nokta-yesil { background: var(--yesil); box-shadow: 0 0 0 3px rgba(34, 195, 166, 0.25); }
+.pano .nokta-kirmizi { background: var(--kirmizi); box-shadow: 0 0 0 3px rgba(240, 93, 108, 0.25); }
+
+.pano .proje-liste { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pano .proje-liste a { display: flex; align-items: center; gap: 14px; padding: 10px; border-radius: 12px; }
+.pano .proje-liste a:hover { background: var(--kart-acik); }
+.pano .proje-liste strong { display: block; font-size: 1rem; color: #fff; }
+.pano .proje-liste small { color: var(--soluk); font-size: 0.85rem; }
+
+.pano .bas-harf {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--mavi), var(--mor));
+}
+
+/* ---------- Tanıtım sayfası ---------- */
+.pano .tanitim-ust {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+    padding: clamp(24px, 4vw, 56px);
+    border-radius: 24px;
+    background: linear-gradient(120deg, #1a2350 0%, #233a8f 60%, #3b2a8a 100%);
+    border: 1px solid var(--cizgi);
+}
+
+.pano .tanitim-etiket {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #c7d3ff;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+}
+
+.pano .tanitim-ust h1 { font-size: clamp(2.2rem, 4vw, 3.4rem); line-height: 1.1; }
+.pano .tanitim-ust p { color: #c9d2f0; font-size: 1.15rem; max-width: 52ch; margin: 16px 0 0; }
+
+.pano .tanitim-butonlar { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+
+.pano .buton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 26px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.02rem;
+    transition: transform 0.15s, background 0.15s;
+}
+
+.pano .buton:hover { transform: translateY(-2px); }
+.pano .buton-dolu { background: #ffffff; color: #1e2a6b; }
+.pano .buton-dolu:hover { background: #e8ecff; }
+.pano .buton-cizgi { border: 1px solid rgba(255, 255, 255, 0.45); color: #ffffff; }
+.pano .buton-cizgi:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* Tanıtımdaki küçük pano önizlemesi (yalnızca görsel; gerçek veri değildir). */
+.pano .onizleme {
+    background: rgba(11, 16, 34, 0.55);
+    border: 1px solid var(--cizgi);
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.pano .onizleme-satir { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.pano .onizleme .ozet-kart { padding: 14px; gap: 10px; }
+.pano .onizleme .ozet-simge { width: 36px; height: 36px; border-radius: 10px; }
+.pano .onizleme .ozet-simge svg { width: 18px; height: 18px; }
+.pano .onizleme .ozet-sayi { font-size: 1.5rem; }
+.pano .onizleme .ozet-baslik { font-size: 0.82rem; }
+
+.pano .tanitim-ozellikler { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 24px; }
+.pano .ozellik { padding: 26px; background: var(--kart); border: 1px solid var(--cizgi); border-radius: 16px; }
+.pano .ozellik h2 { margin: 16px 0 8px; }
+.pano .ozellik p { color: var(--soluk); margin: 0; font-size: 0.98rem; line-height: 1.5; }
+
+/* ---------- Dar ekranlar ---------- */
+@media (max-width: 1199.98px) {
+    .pano .pano-izgara { grid-template-columns: minmax(0, 1fr); }
+    .pano .ozet-izgara { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pano .tanitim-ust { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 767.98px) {
+    .pano { padding: 20px 16px 32px; }
+    .pano .karsilama { flex-direction: column; align-items: flex-start; padding: 24px; }
+    .pano .karsilama-soz { text-align: left; }
+    .pano .kisayol-izgara,
+    .pano .tanitim-ozellikler { grid-template-columns: minmax(0, 1fr); }
+    .pano .onizleme-satir { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 479.98px) {
+    .pano .ozet-izgara { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pano .ozet-kart, .pano .kisayol, .pano .sprint-kart, .pano .gorev-satir, .pano .buton { transition: none; }
+    .pano .ozet-kart:hover, .pano .kisayol:hover, .pano .sprint-kart:hover, .pano .gorev-satir:hover, .pano .buton:hover { transform: none; }
+}
