@@ -101,6 +101,8 @@ else
         </div>
     </div>
 
+    <div id="kanban-hata" class="alert alert-danger d-none" role="alert"></div>
+
     <div class="kanban mb-4">
         @foreach (var sutun in Model.Sutunlar)
         {
@@ -171,3 +173,7 @@ else
 }
 
 <a asp-controller="Proje" asp-action="Details" asp-route-id="@Model.ProjeId">&larr; Projeye dön</a>
+
+@section Scripts {
+    <script src="~/js/pano.js" asp-append-version="true"></script>
+}

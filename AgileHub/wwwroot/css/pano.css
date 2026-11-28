@@ -132,3 +132,18 @@
 .kanban-ileri {
     margin-left: auto;
 }
+
+/* ---------- Sürükle-bırak (pano.js) ---------- */
+.kanban-kart[draggable="true"] {
+    cursor: grab;
+}
+
+.kanban-suruklenen {
+    opacity: 0.5;
+}
+
+/* Boş sütuna da bırakılabilsin diye hedef çerçeve sütunun tamamını gösterir. */
+.kanban-hedef {
+    background: var(--ah-kart-acik);
+    border-color: var(--ah-mavi);
+}
