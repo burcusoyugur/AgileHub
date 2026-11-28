@@ -179,5 +179,26 @@ namespace AgileHub.Controllers.Api
 
             return await GuncelGorevAsync(id);
         }
+
+        /// <summary>Görevin durumunu değiştirir (Yapilacak, Yapiliyor, Test, Bitti).</summary>
+        /// <param name="id">Görev kimliği.</param>
+        /// <param name="istek">Yeni durum, enum adıyla (ör. "Yapiliyor").</param>
+        [HttpPatch("gorevler/{id:int}/durum")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GorevDto>> DurumGuncelle(int id, [FromBody] GorevDurumIstegi istek)
+        {
+            var sonuc = await _gorevServisi.DurumGuncelleAsync(id, istek.Durum!.Value, KullaniciId);
+
+            if (!sonuc.BasariliMi)
+            {
+                return HataSonucu(sonuc);
+            }
+
+            return sonuc.Deger!.ToDto();
+        }
     }
 }
