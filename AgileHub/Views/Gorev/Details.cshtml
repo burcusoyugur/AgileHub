@@ -139,12 +139,12 @@
     </div>
 </div>
 
-@* Yorumlar: Erkim'in bileşeni bu bölüme eklenecek. *@
+@* Yorumlar: liste ve yorum formu Erkim'in bileşeninden gelir. *@
 <section id="yorumlar" class="card mt-3" aria-labelledby="yorumlar-baslik">
     <div class="card-body">
         <h2 id="yorumlar-baslik" class="h5 mb-3">
             Yorumlar <span class="badge bg-secondary">@Model.Yorumlar.Count</span>
         </h2>
-        @* Erkim: @await Component.InvokeAsync("Yorumlar", new { gorevId = Model.Id }) *@
+        @await Component.InvokeAsync("Yorumlar", new { gorevId = Model.Id })
     </div>
 </section>
