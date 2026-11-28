@@ -9,6 +9,8 @@ namespace AgileHub.Services
     // Okumak ve yazmak için projenin üyesi olmak, silmek için yorumu yazmış olmak gerekir.
     public class YorumServisi
     {
+        public const int MetinUzunlukSiniri = 2000;
+
         private readonly ApplicationDbContext _db;
         private readonly ProjeYetkiServisi _yetki;
 
@@ -37,6 +39,68 @@ namespace AgileHub.Services
                 .ToListAsync();
 
             return IslemSonucu<List<Yorum>>.Basarili(yorumlar);
+        }
+
+        // Uzunluk sınırı veritabanında değil, burada uygulanır (şema değişmiyor).
+        public async Task<IslemSonucu<Yorum>> EkleAsync(int gorevId, string? metin, string kullaniciId)
+        {
+            var yetkiSonucu = await GoreveErisimAsync(gorevId, kullaniciId);
+
+            if (!yetkiSonucu.BasariliMi)
+            {
+                return yetkiSonucu;
+            }
+
+            var temizMetin = metin?.Trim() ?? string.Empty;
+
+            if (temizMetin.Length == 0)
+            {
+                return IslemSonucu.Gecersiz("Yorum boş olamaz.");
+            }
+
+            if (temizMetin.Length > MetinUzunlukSiniri)
+            {
+                return IslemSonucu.Gecersiz($"Yorum en fazla {MetinUzunlukSiniri} karakter olabilir.");
+            }
+
+            var yorum = new Yorum
+            {
+                GorevId = gorevId,
+                Metin = temizMetin,
+                YazanKullaniciId = kullaniciId,
+                OlusturmaTarihi = DateTime.Now
+            };
+
+            _db.Yorumlar.Add(yorum);
+            await _db.SaveChangesAsync();
+
+            // API'de yazan kişinin adı dönebilsin diye.
+            await _db.Entry(yorum).Reference(y => y.YazanKullanici).LoadAsync();
+
+            return IslemSonucu<Yorum>.Basarili(yorum);
+        }
+
+        // Başarılıysa yorumun bağlı olduğu görevin id'si döner (silindikten sonra detaya dönmek için).
+        public async Task<IslemSonucu<int>> SilAsync(int yorumId, string kullaniciId)
+        {
+            var yorum = await _db.Yorumlar.FirstOrDefaultAsync(y => y.Id == yorumId);
+
+            if (yorum is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (yorum.YazanKullaniciId != kullaniciId)
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            var gorevId = yorum.GorevId;
+
+            _db.Yorumlar.Remove(yorum);
+            await _db.SaveChangesAsync();
+
+            return IslemSonucu<int>.Basarili(gorevId);
         }
 
         // Görev yoksa 404, kullanıcı görevin projesine üye değilse 403.
