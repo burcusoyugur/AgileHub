@@ -1,0 +1,151 @@
+@model PanoViewModel
+@{
+    ViewData["Title"] = "Pano";
+    var secili = Model.SeciliSprint;
+
+    string SprintDurumMetni(SprintDurumu durum) => durum == SprintDurumu.İptalEdildi ? "İptal edildi" : durum.ToString();
+
+    string BasHarf(string metin) => string.IsNullOrWhiteSpace(metin)
+        ? "?"
+        : metin.Trim()[..1].ToUpper(new System.Globalization.CultureInfo("tr-TR"));
+}
+
+<link rel="stylesheet" href="~/css/pano.css" asp-append-version="true" />
+
+@if (TempData["Mesaj"] is string mesaj)
+{
+    <div class="alert alert-success">@mesaj</div>
+}
+
+@if (TempData["Hata"] is string hata)
+{
+    <div class="alert alert-danger">@hata</div>
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-3">
+    <div class="kanban-baslik">
+        <div class="text-muted small">@Model.ProjeAdi</div>
+        <h1 class="h3 mb-1">
+            @(secili?.Ad ?? "Pano")
+            @if (secili is not null)
+            {
+                <partial name="~/Views/Sprint/_SprintDurumRozeti.cshtml" model="secili.Durum" />
+            }
+        </h1>
+        @if (secili is not null)
+        {
+            <div class="text-muted small">
+                @secili.BaslangicTarihi.ToString("dd.MM.yyyy") – @secili.BitisTarihi.ToString("dd.MM.yyyy")
+                @if (secili.Durum == SprintDurumu.Aktif)
+                {
+                    <text>· @(Model.KalanGun == 0 ? "Bugün bitiyor" : $"{Model.KalanGun} gün kaldı")</text>
+                }
+            </div>
+        }
+    </div>
+
+    @if (Model.Sprintler.Any())
+    {
+        <form method="get" asp-action="Index" class="kanban-secim d-flex gap-2 align-items-end">
+            <input type="hidden" name="projeId" value="@Model.ProjeId" />
+            <div class="flex-grow-1">
+                <label for="sprintId" class="form-label small text-muted mb-1">Sprint</label>
+                <select id="sprintId" name="sprintId" class="form-select" onchange="this.form.submit()">
+                    @if (secili is null)
+                    {
+                        <option value="" selected disabled>Sprint seç</option>
+                    }
+                    @foreach (var sprint in Model.Sprintler)
+                    {
+                        <option value="@sprint.Id" selected="@(sprint.Id == secili?.Id)">
+                            @sprint.Ad (@SprintDurumMetni(sprint.Durum))
+                        </option>
+                    }
+                </select>
+            </div>
+            <noscript><button type="submit" class="btn btn-outline-primary">Göster</button></noscript>
+        </form>
+    }
+</div>
+
+@if (secili is null)
+{
+    <div class="card mb-4">
+        <div class="card-body text-center py-5">
+            <h2 class="h5">Bu projede aktif sprint yok</h2>
+            <p class="text-muted">
+                @(Model.Sprintler.Any()
+                    ? "Panoyu kullanmak için bir sprint başlatın ya da listeden bir sprint seçin."
+                    : "Panoyu kullanmak için bir sprint oluşturup başlatın.")
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a class="btn btn-primary" asp-controller="Sprint" asp-action="Index" asp-route-projeId="@Model.ProjeId">Sprintler</a>
+                <a class="btn btn-outline-primary" asp-controller="SprintPlanlama" asp-action="Index" asp-route-projeId="@Model.ProjeId">Sprint planlama</a>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="mb-3">
+        <div class="d-flex justify-content-between small text-muted mb-1">
+            <span>@Model.TamamlananStoryPoint / @Model.ToplamStoryPoint story point tamamlandı</span>
+            <span>%@Model.IlerlemeYuzdesi</span>
+        </div>
+        <div class="progress" role="progressbar" aria-label="Sprint ilerlemesi"
+             aria-valuenow="@Model.IlerlemeYuzdesi" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar bg-success" style="width: @(Model.IlerlemeYuzdesi)%"></div>
+        </div>
+    </div>
+
+    <div class="kanban mb-4">
+        @foreach (var sutun in Model.Sutunlar)
+        {
+            var sutunSinifi = sutun.Durum.ToString().ToLowerInvariant();
+
+            <section class="kanban-sutun kanban-sutun-@sutunSinifi" data-durum="@sutun.Durum" aria-labelledby="sutun-@sutunSinifi">
+                <header class="kanban-sutun-baslik">
+                    <h2 id="sutun-@sutunSinifi" class="h6 mb-0">@sutun.Durum.Metin()</h2>
+                    <span class="small text-muted">@sutun.Gorevler.Count görev · @sutun.ToplamStoryPoint SP</span>
+                </header>
+
+                <ul class="kanban-liste">
+                    @foreach (var gorev in sutun.Gorevler)
+                    {
+                        var atanan = $"{gorev.AtananKullanici?.Ad} {gorev.AtananKullanici?.Soyad}".Trim();
+
+                        <li class="card kanban-kart">
+                            <div class="card-body">
+                                <a class="kanban-kart-baslik" asp-controller="Gorev" asp-action="Details" asp-route-id="@gorev.Id">@gorev.Baslik</a>
+
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <partial name="~/Views/Gorev/_GorevOncelikRozeti.cshtml" model="gorev.Oncelik" />
+                                    <span class="small text-muted">@(gorev.StoryPoint is int sp ? $"{sp} SP" : "SP yok")</span>
+                                </div>
+
+                                <div class="kanban-atanan small">
+                                    @if (gorev.AtananKullanici is null)
+                                    {
+                                        <span class="text-muted">Atanmamış</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="kanban-avatar" aria-hidden="true">@BasHarf(atanan)</span>
+                                        <span>@atanan</span>
+                                    }
+                                </div>
+                            </div>
+                        </li>
+                    }
+                </ul>
+
+                @if (!sutun.Gorevler.Any())
+                {
+                    <p class="kanban-bos small text-muted">Görev yok</p>
+                }
+            </section>
+        }
+    </div>
+}
+
+<a asp-controller="Proje" asp-action="Details" asp-route-id="@Model.ProjeId">&larr; Projeye dön</a>
