@@ -136,6 +136,7 @@ Uç açıklamaları controller'lardaki `/// <summary>` yorumlarından gelir (`Ag
 | `POST /api/projeler/{projeId}/gorevler` | `201` + `Location` başlığı | `400`, `401`, `403`, `404` |
 | `PUT /api/gorevler/{id}` | `200` güncel görev | `400`, `401`, `403`, `404` |
 | `PATCH /api/gorevler/{id}/sprint` | `200` güncel görev (`sprintId: null` → backlog) | `400`, `401`, `403`, `404` |
+| `PATCH /api/gorevler/{id}/durum` | `200` güncel görev (gövde: `{ "durum": "Yapiliyor" }`) | `400` geçersiz durum, `401`, `403`, `404` |
 | `DELETE /api/gorevler/{id}` | `204` | `401`, `403`, `404` |
 
 Hata yanıtları ProblemDetails biçimindedir:
