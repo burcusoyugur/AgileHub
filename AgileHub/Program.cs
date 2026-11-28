@@ -83,6 +83,7 @@ builder.Services.AddScoped<SprintServisi>();
 builder.Services.AddScoped<SprintAtamaServisi>();
 builder.Services.AddScoped<AnaSayfaServisi>();
 builder.Services.AddScoped<ProjeServisi>();
+builder.Services.AddScoped<YorumServisi>();
 
 // Enum'lar API'de sayı yerine ad olarak gönderilir (ör. "Yapiliyor").
 builder.Services.AddControllersWithViews()
