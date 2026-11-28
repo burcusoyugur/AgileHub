@@ -1,0 +1,149 @@
+/* Kanban panosu (Views/Pano/Index). Renkler tema.css'teki --ah-* değişkenlerinden gelir.
+   Sınıflar "kanban" önekli: anasayfa.css'teki .pano ana sayfaya aittir. */
+
+.kanban-baslik {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.kanban-secim {
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+/* Dar ekranda sütunlar alt alta, orta genişlikte ikişerli, geniş ekranda dördü yan yana. */
+.kanban {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (min-width: 576px) {
+    .kanban-secim {
+        flex: 0 1 20rem;
+    }
+
+    .kanban {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 992px) {
+    .kanban {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* ---------- Sütunlar ---------- */
+.kanban-sutun {
+    --kanban-vurgu: var(--ah-soluk);
+    min-width: 0;
+    padding: 0.75rem;
+    background: var(--ah-ust);
+    border: 1px solid var(--ah-cizgi);
+    border-top: 3px solid var(--kanban-vurgu);
+    border-radius: 16px;
+}
+
+.kanban-sutun-yapiliyor { --kanban-vurgu: var(--ah-mor); }
+.kanban-sutun-test      { --kanban-vurgu: var(--ah-turuncu); }
+.kanban-sutun-bitti     { --kanban-vurgu: var(--ah-yesil); }
+
+.kanban-sutun-baslik {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25rem 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.kanban-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.kanban-bos {
+    margin: 0;
+    padding: 1rem;
+    text-align: center;
+    border: 1px dashed var(--ah-cizgi);
+    border-radius: 12px;
+}
+
+/* ---------- Kartlar ---------- */
+.kanban-kart .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.75rem;
+}
+
+.kanban-kart-baslik {
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--bs-emphasis-color);
+    overflow-wrap: anywhere;
+}
+
+.kanban-kart-baslik:hover,
+.kanban-kart-baslik:focus {
+    color: var(--bs-link-hover-color);
+    text-decoration: underline;
+}
+
+.kanban-atanan {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.kanban-avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    font-weight: 700;
+    color: var(--bs-emphasis-color);
+    background: linear-gradient(135deg, var(--ah-mavi), var(--ah-mor));
+    border-radius: 50%;
+}
+
+/* ---------- Taşıma düğmeleri ---------- */
+.kanban-tasi {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.kanban-tasi .btn {
+    min-width: 2.5rem;
+}
+
+/* İlk sütunda tek düğme olsa da "ileri" sağda kalsın. */
+.kanban-ileri {
+    margin-left: auto;
+}
+
+/* ---------- Sürükle-bırak (pano.js) ---------- */
+.kanban-kart[draggable="true"] {
+    cursor: grab;
+}
+
+.kanban-suruklenen {
+    opacity: 0.5;
+}
+
+/* Boş sütuna da bırakılabilsin diye hedef çerçeve sütunun tamamını gösterir. */
+.kanban-hedef {
+    background: var(--ah-kart-acik);
+    border-color: var(--ah-mavi);
+}
