@@ -283,5 +283,38 @@ namespace AgileHub.Services
 
             return IslemSonucu.Basarili();
         }
+
+        // Pano kartı, görev detayı ve mobil aynı yoldan durum değiştirir. Sprint kuralı yok:
+        // backlog'daki görevin durumu da değişebilir. Atanan kişi, API DTO'sunda adı dolu olsun diye yüklenir.
+        public async Task<IslemSonucu<Gorev>> DurumGuncelleAsync(int gorevId, GorevDurumu yeniDurum, string kullaniciId)
+        {
+            var gorev = await _db.Gorevler
+                .Include(g => g.AtananKullanici)
+                .FirstOrDefaultAsync(g => g.Id == gorevId);
+
+            if (gorev is null)
+            {
+                return IslemSonucu.Bulunamadi();
+            }
+
+            if (!await _yetki.UyeMiAsync(gorev.ProjeId, kullaniciId))
+            {
+                return IslemSonucu.Yetkisiz();
+            }
+
+            // API'den sayı olarak tanımsız bir değer gelebilir.
+            if (!Enum.IsDefined(yeniDurum))
+            {
+                return IslemSonucu.Gecersiz("Geçersiz görev durumu.");
+            }
+
+            if (gorev.Durum != yeniDurum)
+            {
+                gorev.Durum = yeniDurum;
+                await _db.SaveChangesAsync();
+            }
+
+            return IslemSonucu<Gorev>.Basarili(gorev);
+        }
     }
 }

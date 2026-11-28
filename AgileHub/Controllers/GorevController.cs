@@ -273,5 +273,49 @@ namespace AgileHub.Controllers
             TempData["Mesaj"] = "Görev silindi.";
             return RedirectToAction(nameof(Index), new { projeId });
         }
+
+        // POST: /Gorev/DurumGuncelle  (alanlar: id, durum, donusAdresi)
+        // Pano kartları ve görev detayı form ile çağırır. Panodaki sürükle-bırak fetch ile
+        // ("X-Requested-With: fetch") gönderir; o zaman yönlendirme yerine 204 ya da hata kodu ve kısa metin döner.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DurumGuncelle(int id, GorevDurumu? durum, string? donusAdresi)
+        {
+            var fetchMi = Request.Headers["X-Requested-With"] == "fetch";
+
+            // Bağlanamayan değer (ör. "Uydurma") null gelir; varsayılan duruma düşmesin diye ayrıca kontrol edilir.
+            var sonuc = durum is GorevDurumu yeniDurum && ModelState.IsValid
+                ? await _gorevServisi.DurumGuncelleAsync(id, yeniDurum, KullaniciId)
+                : IslemSonucu.Gecersiz("Geçersiz görev durumu.");
+
+            if (fetchMi)
+            {
+                return sonuc.Durum switch
+                {
+                    IslemDurumu.Basarili => NoContent(),
+                    IslemDurumu.Bulunamadi => NotFound("Görev bulunamadı."),
+                    IslemDurumu.Yetkisiz => StatusCode(StatusCodes.Status403Forbidden, "Bu görevin durumunu değiştirme yetkin yok."),
+                    _ => BadRequest(sonuc.Hata)
+                };
+            }
+
+            if (sonuc.Durum is IslemDurumu.Bulunamadi or IslemDurumu.Yetkisiz)
+            {
+                return HataSonucu(sonuc.Durum);
+            }
+
+            if (sonuc.BasariliMi)
+            {
+                TempData["Mesaj"] = "Görev durumu güncellendi.";
+            }
+            else
+            {
+                TempData["Hata"] = sonuc.Hata;
+            }
+
+            return Url.IsLocalUrl(donusAdresi)
+                ? LocalRedirect(donusAdresi)
+                : RedirectToAction(nameof(Details), new { id });
+        }
     }
 }

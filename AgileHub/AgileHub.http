@@ -209,3 +209,33 @@ Authorization: Bearer {{adminToken}}
 ### 5.9 Aynı görevi tekrar sil → 404
 DELETE {{baseUrl}}/api/gorevler/{{gorevEkle.response.body.$.id}}
 Authorization: Bearer {{adminToken}}
+
+###############################################################################
+# 6. Görev durumu (GorevlerApiController, PATCH .../durum)
+###############################################################################
+
+### 6.1 Projenin görevleri; ilk görev sonraki isteklerde kullanılır → 200
+# @name durumGorevleri
+GET {{baseUrl}}/api/projeler/{{projeId}}/gorevler
+Authorization: Bearer {{adminToken}}
+
+### 6.2 Görevin durumunu değiştir → 200 + güncel görev
+PATCH {{baseUrl}}/api/gorevler/{{durumGorevleri.response.body.$[0].id}}/durum
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "durum": "Yapiliyor" }
+
+### 6.3 Tanımsız durum → 400
+PATCH {{baseUrl}}/api/gorevler/{{durumGorevleri.response.body.$[0].id}}/durum
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "durum": "Uydurma" }
+
+### 6.4 Üyesi olmadığım projenin görevi → 403
+PATCH {{baseUrl}}/api/gorevler/{{durumGorevleri.response.body.$[0].id}}/durum
+Authorization: Bearer {{testToken}}
+Content-Type: application/json
+
+{ "durum": "Bitti" }
