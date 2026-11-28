@@ -1,0 +1,62 @@
+@using AgileHub.Services
+@using AgileHub.ViewComponents
+@model YorumlarBileseniModeli
+@{
+    static string YazanAdi(ApplicationUser? kisi)
+    {
+        if (kisi is null)
+        {
+            return "Bilinmeyen kullanıcı";
+        }
+
+        var ad = $"{kisi.Ad} {kisi.Soyad}".Trim();
+        return ad.Length > 0 ? ad : kisi.Email ?? "Bilinmeyen kullanıcı";
+    }
+
+    static string BasHarf(string ad) => string.IsNullOrWhiteSpace(ad) ? "?" : ad.Trim()[..1].ToUpper();
+}
+
+@if (Model.Yorumlar.Count == 0)
+{
+    <p class="text-muted">Henüz yorum yok. İlk yorumu sen yaz.</p>
+}
+else
+{
+    <ul class="list-group mb-3">
+        @foreach (var yorum in Model.Yorumlar)
+        {
+            var yazan = YazanAdi(yorum.YazanKullanici);
+            <li class="list-group-item py-3">
+                <div class="d-flex gap-2 align-items-start">
+                    <span class="d-inline-flex flex-shrink-0 align-items-center justify-content-center rounded-circle fw-semibold text-white"
+                          style="width: 2rem; height: 2rem; background: var(--ah-mor);" aria-hidden="true">@BasHarf(yazan)</span>
+                    <div class="flex-grow-1" style="min-width: 0">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-1">
+                            <div class="small">
+                                <span class="fw-semibold text-break">@yazan</span>
+                                <span class="text-muted">· @yorum.OlusturmaTarihi.ToString("dd.MM.yyyy HH:mm")</span>
+                            </div>
+                            @if (yorum.YazanKullaniciId == Model.KullaniciId)
+                            {
+                                <form asp-controller="Yorum" asp-action="Sil" asp-route-id="@yorum.Id" method="post"
+                                      onsubmit="return confirm('Bu yorum silinsin mi?');">
+                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0">Sil</button>
+                                </form>
+                            }
+                        </div>
+                        @* Metin HTML olarak işlenmez (Razor kodlar); satır sonları pre-line ile korunur. *@
+                        <p class="mb-0 mt-1 text-break" style="white-space: pre-line">@yorum.Metin</p>
+                    </div>
+                </div>
+            </li>
+        }
+    </ul>
+}
+
+<form asp-controller="Yorum" asp-action="Ekle" method="post">
+    <input type="hidden" name="gorevId" value="@Model.GorevId" />
+    <label for="yorum-metin" class="form-label visually-hidden">Yorum</label>
+    <textarea id="yorum-metin" name="metin" class="form-control mb-2" rows="3"
+              maxlength="@YorumServisi.MetinUzunlukSiniri" placeholder="Yorumunu yaz..."></textarea>
+    <button type="submit" class="btn btn-primary">Yorum ekle</button>
+</form>
