@@ -32,6 +32,8 @@
         }
         @if (Model.Durum == SprintDurumu.Aktif)
         {
+            <a class="btn btn-primary" asp-controller="Pano" asp-action="Index"
+               asp-route-projeId="@Model.ProjeId" asp-route-sprintId="@Model.Id">Panoyu aç</a>
             <form asp-action="Tamamla" asp-route-id="@Model.Id" method="post"
                   onsubmit="return confirm('Sprint tamamlansın mı? Bitmeyen görevler backlog\'a dönecek.');">
                 <button type="submit" class="btn btn-success">Tamamla</button>
