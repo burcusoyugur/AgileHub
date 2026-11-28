@@ -78,4 +78,7 @@ namespace AgileHub.Models
 
     // SprintId null ise görev backlog'a alınır.
     public record GorevSprintIstegi(int? SprintId);
+
+    // Mobil gövdeyi enum adıyla gönderir: { "durum": "Yapiliyor" }.
+    public record GorevDurumIstegi([Required(ErrorMessage = "Durum zorunludur.")] GorevDurumu? Durum);
 }
