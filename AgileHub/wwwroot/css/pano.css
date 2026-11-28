@@ -117,3 +117,18 @@
     background: linear-gradient(135deg, var(--ah-mavi), var(--ah-mor));
     border-radius: 50%;
 }
+
+/* ---------- Taşıma düğmeleri ---------- */
+.kanban-tasi {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.kanban-tasi .btn {
+    min-width: 2.5rem;
+}
+
+/* İlk sütunda tek düğme olsa da "ileri" sağda kalsın. */
+.kanban-ileri {
+    margin-left: auto;
+}

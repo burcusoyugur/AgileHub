@@ -3,6 +3,9 @@
     ViewData["Title"] = "Pano";
     var secili = Model.SeciliSprint;
 
+    // Kart taşındıktan sonra aynı sprintin panosuna dönülür.
+    var donusAdresi = Url.Action("Index", "Pano", new { projeId = Model.ProjeId, sprintId = secili?.Id });
+
     string SprintDurumMetni(SprintDurumu durum) => durum == SprintDurumu.İptalEdildi ? "İptal edildi" : durum.ToString();
 
     string BasHarf(string metin) => string.IsNullOrWhiteSpace(metin)
@@ -113,6 +116,8 @@ else
                     @foreach (var gorev in sutun.Gorevler)
                     {
                         var atanan = $"{gorev.AtananKullanici?.Ad} {gorev.AtananKullanici?.Soyad}".Trim();
+                        GorevDurumu? onceki = gorev.Durum > GorevDurumu.Yapilacak ? gorev.Durum - 1 : null;
+                        GorevDurumu? sonraki = gorev.Durum < GorevDurumu.Bitti ? gorev.Durum + 1 : null;
 
                         <li class="card kanban-kart">
                             <div class="card-body">
@@ -134,6 +139,23 @@ else
                                         <span>@atanan</span>
                                     }
                                 </div>
+
+                                <form asp-controller="Gorev" asp-action="DurumGuncelle" method="post" class="kanban-tasi">
+                                    <input type="hidden" name="id" value="@gorev.Id" />
+                                    <input type="hidden" name="donusAdresi" value="@donusAdresi" />
+                                    @if (onceki is GorevDurumu geri)
+                                    {
+                                        <button type="submit" name="durum" value="@geri" class="btn btn-sm btn-outline-secondary"
+                                                title="@geri.Metin() sütununa taşı"
+                                                aria-label="@gorev.Baslik görevini @geri.Metin() sütununa taşı">&#9664;&#xFE0E;</button>
+                                    }
+                                    @if (sonraki is GorevDurumu ileri)
+                                    {
+                                        <button type="submit" name="durum" value="@ileri" class="btn btn-sm btn-outline-secondary kanban-ileri"
+                                                title="@ileri.Metin() sütununa taşı"
+                                                aria-label="@gorev.Baslik görevini @ileri.Metin() sütununa taşı">&#9654;&#xFE0E;</button>
+                                    }
+                                </form>
                             </div>
                         </li>
                     }
